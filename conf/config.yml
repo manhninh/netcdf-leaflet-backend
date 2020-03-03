@@ -1,0 +1,10 @@
+general:
+    EPSG: 25832
+    attributes_to_read:
+        - TSurf
+        - Albedo
+        # - WindDir
+        # - WindSpd
+    project_name: test
+geoserver:
+    url: http://localhost:8080/geoserver
