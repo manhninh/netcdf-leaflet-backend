@@ -16,7 +16,7 @@
 
 from netCDF4 import Dataset,Variable
 import numpy as np
-import sys, math
+import sys, math,os
 import utils
 
 
@@ -49,19 +49,11 @@ def createDimensions():
     lon.units = 'degrees_east'
     lon.axis = 'X'
 
-
-    # create height axis
-    z = ncout.createVariable('z', np.dtype('int').char, ('z'))
-    z.standard_name = 'elevation'
-    z.long_name = 'height'
-    z.units = 'm'
-    z.axis = 'Z'
-
     resX,resY =utils.calculatePixelSize(locationLat,1,1)
     # copy axis from original dataset
-    time[:] = np.int_(tin[:]) #converting hours to integer
-    lon[:] = longitude[:]*resX+locationLong
-    lat[:] = latitude[:]*resY+locationLat
+    time[:] = np.round(times[:],2) #converting hours to integer
+    lon[:] = longitudes[:]*resX+locationLong
+    lat[:] = latitudes[:]*resY+locationLat
 
 
 #creating vars specified in Config
@@ -71,16 +63,21 @@ def createVars():
     for name, vin in ncin.variables.items():
         data={}
         if name in attributes:
-            name=name.replace('.','-')
+            name=name.replace('.','_')
             if  len(vin.dimensions)==3:
                 data[name] =ncout.createVariable(name,np.dtype('double').char,('time','lat','lon',))
-            else:
-                data[name] =ncout.createVariable(name,np.dtype('double').char,('time','z','lat','lon',))
-            for ncattr in vin.ncattrs():
-                data[name].setncattr(ncattr, vin.getncattr(ncattr))
-            data[name][:]=vin[:]
-
-
+                for ncattr in vin.ncattrs():
+                    data[name].setncattr(ncattr, vin.getncattr(ncattr))
+                data[name][:]=vin[:]
+            elif len(vin.dimensions)==4:
+                for h in heightlevels:
+                    var_name=name+'_'+str(h).replace('.','_')
+                    data[var_name] =ncout.createVariable(var_name,np.dtype('double').char,('time','lat','lon',))
+                    for ncattr in vin.ncattrs():
+                        data[var_name].setncattr(ncattr, vin.getncattr(ncattr))
+                    data[var_name].setncattr('height', h)    
+                    heightIndex=np.where(np.array(heights)==h)               
+                    data[var_name][:]=np.array(vin)[:,heightIndex,:,:]
 
 #-----------------
 # read netCDF file
@@ -103,19 +100,22 @@ cfg=utils.readConf()
 attributes=cfg['general']['attributes_to_read']
 epsg=cfg['general']['EPSG']
 projectname=cfg['general']['project_name']
+heightlevels=cfg['general']['height_levels']
 
 # get axis data
-tin = ncin.variables['Time']
-latitude = ncin.variables['GridsJ']
-longitude = ncin.variables['GridsI']
-height = ncin.variables['GridsK']
+times = ncin.variables['Time']
+latitudes = ncin.variables['GridsJ']
+longitudes = ncin.variables['GridsI']
+heights = ncin.variables['GridsK']
 
 # get length of axis data
-nlat = len(latitude)
-nlon = len(longitude)
-ntime = len(height)
+nlat = len(latitudes)
+nlon = len(longitudes)
+ntime = len(times)
 
 # open netCDF file to write
+if not os.path.isdir(sys.path[0]+'/outputFiles/'):
+    os.mkdir(sys.path[0]+'/outputFiles/')
 ncout = Dataset(sys.path[0]+'/outputFiles/'+ projectname +'.nc', 'w', format='NETCDF4')
 
 createDimensions()

@@ -20,7 +20,7 @@ import zipfile
 import requests
 import utils
 import sys,os
-import json
+import json,re
 from geoserver.catalog import Catalog
 cat=Catalog("http://localhost:8080/geoserver/rest/", "admin", "geoserver")
 
@@ -71,7 +71,10 @@ layers = layers['layers']['layer']
 # elevationParameter={ "enabled": "false"}
 for _l in layers:
     layer=cat.get_layer(_l['name'])
-    layer.default_style=layer.name
+    if re.match(r".+_\d+_\d+",layer.name): #Checking for variable with multiple height levels
+        layer.default_style=re.sub(r"_\d+_\d+","",layer.name)
+    else: 
+        layer.default_style=layer.name
     cat.save(layer)
     #get coverage to activate time Dimension
     from geoserver.support import DimensionInfo

@@ -4,7 +4,8 @@ general:
         - TSurf
         - Albedo
         # - WindDir
-        # - WindSpd
-    project_name: test
+        - T
+    project_name: test #also used for workspacename in geoserver
+    height_levels: [0.3,1.5,40.5]
 geoserver:
     url: http://localhost:8080/geoserver

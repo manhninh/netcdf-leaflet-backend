@@ -8,9 +8,6 @@
 # description:
 #   General methods used in main scripts
 #
-# reference:
-#   http://unidata.github.io/netcdf4-python/
-#
 # author: Elias Borngässer
 #=======================================================================
 
