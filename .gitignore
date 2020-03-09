@@ -1,0 +1,5 @@
+Pipfile.lock
+.vscode
+__pycache__
+inputFiles/**
+outputFiles/**
