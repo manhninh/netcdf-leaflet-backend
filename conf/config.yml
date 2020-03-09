@@ -1,5 +1,5 @@
 general:
-    EPSG: 900913 #25832 #3857
+    EPSG: 25832 #900913 #25832 #900913 # # #3857
     attributes_to_read:
         - TSurf
         #- Albedo

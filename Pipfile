@@ -18,8 +18,11 @@ pyproj ="*"
 
 coloredlogs ="*"
 spatialnc="*"
+
 scipy="*"
 matplotlib="*"
+
+affine="*"
 
 [requires]
 python_version = "3.7"

@@ -2,7 +2,8 @@ from netCDF4 import Dataset
 import argparse
 import os.path
 from urllib.request import urlopen
-import re
+import re,math
+from affine import Affine
 
 
 def strip_chars(edit_str, bad_chars='[(){}<>,"_]=\nns'):
@@ -10,17 +11,35 @@ def strip_chars(edit_str, bad_chars='[(){}<>,"_]=\nns'):
 
     return result
 def gather_utm_meta(epsg_str,epsg):
+    affine=Affine.rotation(58.0)
+    ratio=math.pi
+    elt_0_0=str(affine.a/ratio)
+    elt_0_1=str(affine.b/ratio)
+    elt_0_2=str(918079.626281209) #918079.626281209)#0.0) #446044.8576076973
+    elt_1_0=str(affine.d/ratio)
+    elt_1_1=str(affine.e/ratio)
+    elt_1_2=str(6445039.217828758) #6445039.217828758) #5538108.209966961
+
     map_meta = {}
     map_meta['grid_mapping_name'] = "mercator"
-    map_meta['longitude_of_central_meridian'] = 110.0
-    map_meta['latitude_of_projection_origin'] = -25.0 
-    map_meta['standard_parallel'] = 0.02
+    map_meta['longitude_of_central_meridian'] = 0.0
+    map_meta['latitude_of_projection_origin'] = 0.0 
+    map_meta['standard_parallel'] = 0.0
     map_meta['_CoordinateTransformType'] = "Projection"
     map_meta['_CoordinateAxisTypes'] = "GeoX GeoY"
-    map_meta['spatial_ref'] = 'FITTED_CS["BPAF", PARAM_MT["Affine", PARAMETER["num_row", 3], PARAMETER["num_col", 3], PARAMETER["elt_0_0", -0.5], PARAMETER["elt_0_1", -0.8660254037844386], PARAMETER["elt_0_2", 1487816.0], PARAMETER["elt_1_0", 0.8660254037844386], PARAMETER["elt_1_1", -0.5], PARAMETER["elt_1_2", 6886579.0]], PROJCS["WGS84 / Google Mercator", GEOGCS["WGS 84", DATUM["World Geodetic System 1984", SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]], AUTHORITY["EPSG","6326"]], PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]], UNIT["degree", 0.017453292519943295], AXIS["Longitude", EAST], AXIS["Latitude", NORTH], AUTHORITY["EPSG","4326"]], PROJECTION["Mercator_1SP"], PARAMETER["semi_minor", 6378137.0], PARAMETER["latitude_of_origin", 0.0], PARAMETER["central_meridian", 0.0], PARAMETER["scale_factor", 1.0], PARAMETER["false_easting", 0.0], PARAMETER["false_northing", 0.0], UNIT["m", 1.0], AXIS["x", EAST], AXIS["y", NORTH], AUTHORITY["EPSG","900913"]], AUTHORITY["EPSG","8011113"]]'
+    map_meta['spatial_ref'] = 'FITTED_CS["BPAF", PARAM_MT["Affine", PARAMETER["num_row", 3], PARAMETER["num_col", 3], PARAMETER["elt_0_0",'+elt_0_0+'], PARAMETER["elt_0_1", '+elt_0_1+'], PARAMETER["elt_0_2", '+elt_0_2+'], PARAMETER["elt_1_0", '+elt_1_0+'], PARAMETER["elt_1_1", '+elt_1_1+'], PARAMETER["elt_1_2", '+elt_1_2+']], PROJCS["WGS84 / Google Mercator", GEOGCS["WGS 84", DATUM["World Geodetic System 1984", SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]], AUTHORITY["EPSG","6326"]], PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]], UNIT["degree", 0.017453292519943295], AXIS["Longitude", EAST], AXIS["Latitude", NORTH], AUTHORITY["EPSG","4326"]], PROJECTION["Mercator_1SP"], PARAMETER["semi_minor", 6378137.0], PARAMETER["latitude_of_origin", 0.0], PARAMETER["central_meridian", 0.0], PARAMETER["scale_factor", 1.0], PARAMETER["false_easting", 0.0], PARAMETER["false_northing", 0.0], UNIT["m", 1.0], AXIS["x", EAST], AXIS["y", NORTH], AUTHORITY["EPSG","900913"]], AUTHORITY["EPSG","8011113"]]'
     return map_meta
-
 def gather_utm_meta3(epsg_str,epsg):
+    map_meta = {}
+    map_meta['grid_mapping_name'] = "mercator"
+    map_meta['longitude_of_central_meridian'] = 0.0
+    map_meta['latitude_of_projection_origin'] = 0.0 
+    map_meta['standard_parallel'] = 0.0
+    map_meta['_CoordinateTransformType'] = "Projection"
+    map_meta['_CoordinateAxisTypes'] = "GeoX GeoY"
+    map_meta['spatial_ref'] = 'PROJCS["WGS84 / Google Mercator", GEOGCS["WGS 84", DATUM["World Geodetic System 1984", SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]], AUTHORITY["EPSG","6326"]], PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]], UNIT["degree", 0.017453292519943295], AXIS["Longitude", EAST], AXIS["Latitude", NORTH], AUTHORITY["EPSG","4326"]], PROJECTION["Mercator_1SP"], PARAMETER["semi_minor", 6378137.0], PARAMETER["latitude_of_origin", 0.0], PARAMETER["central_meridian", 0.0], PARAMETER["scale_factor", 1.0], PARAMETER["false_easting", 0.0], PARAMETER["false_northing", 0.0], UNIT["m", 1.0], AXIS["x", EAST], AXIS["y", NORTH], AUTHORITY["EPSG","900913"]]'
+    return map_meta
+def gather_utm_meta22(epsg_str,epsg):
     map_meta = {}
     map_meta['grid_mapping_name'] = "transverse_mercator"
     map_meta['longitude_of_central_meridian'] = 9.0
@@ -33,7 +52,7 @@ def gather_utm_meta3(epsg_str,epsg):
     map_meta['inverse_flattening'] =   298.257
     map_meta['_CoordinateTransformType'] = "Projection"
     map_meta['_CoordinateAxisTypes'] = "GeoX GeoY"
-    map_meta['spatial_ref'] = 'FITTED_CS["BPAF", PARAM_MT["Affine", PARAMETER["num_row", 3], PARAMETER["num_col", 3], PARAMETER["elt_0_0", -0.5], PARAMETER["elt_0_1", -0.8660254037844386], PARAMETER["elt_0_2", 1487816.0], PARAMETER["elt_1_0", 0.8660254037844386], PARAMETER["elt_1_1", -0.5], PARAMETER["elt_1_2", 6886579.0]], PROJCS["WGS84 / Google Mercator", GEOGCS["WGS 84", DATUM["World Geodetic System 1984", SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]], AUTHORITY["EPSG","6326"]], PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]], UNIT["degree", 0.017453292519943295], AXIS["Longitude", EAST], AXIS["Latitude", NORTH], AUTHORITY["EPSG","4326"]], PROJECTION["Mercator_1SP"], PARAMETER["semi_minor", 6378137.0], PARAMETER["latitude_of_origin", 0.0], PARAMETER["central_meridian", 0.0], PARAMETER["scale_factor", 1.0], PARAMETER["false_easting", 0.0], PARAMETER["false_northing", 0.0], UNIT["m", 1.0], AXIS["x", EAST], AXIS["y", NORTH], AUTHORITY["EPSG","900913"]], AUTHORITY["EPSG","8011113"]]'
+    map_meta['spatial_ref'] = 'FITTED_CS["BPAF", PARAM_MT["Affine", PARAMETER["num_row", 3], PARAMETER["num_col", 3], PARAMETER["elt_0_0", -0.5], PARAMETER["elt_0_1", -0.8660254037844386], PARAMETER["elt_0_2", 918079.626281209], PARAMETER["elt_1_0", 0.8660254037844386], PARAMETER["elt_1_1", -0.5], PARAMETER["elt_1_2", 6445039.217828758]], PROJCS["WGS84 / Google Mercator", GEOGCS["WGS 84", DATUM["World Geodetic System 1984", SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]], AUTHORITY["EPSG","6326"]], PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]], UNIT["degree", 0.017453292519943295], AXIS["Longitude", EAST], AXIS["Latitude", NORTH], AUTHORITY["EPSG","4326"]], PROJECTION["Mercator_1SP"], PARAMETER["semi_minor", 6378137.0], PARAMETER["latitude_of_origin", 0.0], PARAMETER["central_meridian", 0.0], PARAMETER["scale_factor", 1.0], PARAMETER["false_easting", 0.0], PARAMETER["false_northing", 0.0], UNIT["m", 1.0], AXIS["x", EAST], AXIS["y", NORTH], AUTHORITY["EPSG","900913"]], AUTHORITY["EPSG","8011113"]]'
     return map_meta
 def gather_utm_meta2(epsg_str,epsg):
     """
@@ -43,6 +62,16 @@ def gather_utm_meta2(epsg_str,epsg):
     https://www.unidata.ucar.edu/software/thredds/current/netcdf-java/reference/StandardCoordinateTransforms.html
 
     """
+    affine=Affine.rotation(58.0)
+    ratio=math.pi
+    elt_0_0=str(affine.a/ratio)
+    elt_0_1=str(affine.b/ratio)
+    elt_0_2=str(446044.8576076973) #918079.626281209)#0.0) #
+    elt_1_0=str(affine.d/ratio)
+    elt_1_1=str(affine.e/ratio)
+    elt_1_2=str(5538108.209966961) #6445039.217828758) #
+
+
     meta = epsg_str.lower()
 
     map_meta = {
@@ -50,7 +79,7 @@ def gather_utm_meta2(epsg_str,epsg):
                     "utm_zone_number": None,
                     "semi_major_axis": None,
                     "inverse_flattening": None,
-                    'spatial_ref': epsg_str,
+                    'spatial_ref': 'FITTED_CS["BPAF", PARAM_MT["Affine", PARAMETER["num_row", 3], PARAMETER["num_col", 3], PARAMETER["elt_0_0",'+elt_0_0+'], PARAMETER["elt_0_1", '+elt_0_1+'], PARAMETER["elt_0_2", '+elt_0_2+'], PARAMETER["elt_1_0", '+elt_1_0+'], PARAMETER["elt_1_1", '+elt_1_1+'], PARAMETER["elt_1_2", '+elt_1_2+']],'+epsg_str+ ', AUTHORITY["EPSG","8011113"]]',
                     "_CoordinateTransformType": "projection",
                     "_CoordinateAxisTypes": "GeoX GeoY"}
 

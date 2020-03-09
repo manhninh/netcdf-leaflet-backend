@@ -56,8 +56,8 @@ def createDimensions():
     locationLongTransformed,locationLatTransformed = transformer.transform(locationLat,locationLong)
     time[:] = np.round(times[:],2) #converting hours to integer
    
-    x[:] = longitudes[:]+locationLongTransformed #*resX+locationLong
-    y[:] = latitudes[::-1]+locationLatTransformed#*resY+locationLat
+    x[:] = longitudes[::-1]+locationLongTransformed #*resX+locationLong
+    y[:] = latitudes[:]+locationLatTransformed#*resY+locationLat :-1
 
 
 
