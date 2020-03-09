@@ -11,6 +11,17 @@ def strip_chars(edit_str, bad_chars='[(){}<>,"_]=\nns'):
     return result
 def gather_utm_meta(epsg_str,epsg):
     map_meta = {}
+    map_meta['grid_mapping_name'] = "mercator"
+    map_meta['longitude_of_central_meridian'] = 110.0
+    map_meta['latitude_of_projection_origin'] = -25.0 
+    map_meta['standard_parallel'] = 0.02
+    map_meta['_CoordinateTransformType'] = "Projection"
+    map_meta['_CoordinateAxisTypes'] = "GeoX GeoY"
+    map_meta['spatial_ref'] = 'FITTED_CS["BPAF", PARAM_MT["Affine", PARAMETER["num_row", 3], PARAMETER["num_col", 3], PARAMETER["elt_0_0", -0.5], PARAMETER["elt_0_1", -0.8660254037844386], PARAMETER["elt_0_2", 1487816.0], PARAMETER["elt_1_0", 0.8660254037844386], PARAMETER["elt_1_1", -0.5], PARAMETER["elt_1_2", 6886579.0]], PROJCS["WGS84 / Google Mercator", GEOGCS["WGS 84", DATUM["World Geodetic System 1984", SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]], AUTHORITY["EPSG","6326"]], PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]], UNIT["degree", 0.017453292519943295], AXIS["Longitude", EAST], AXIS["Latitude", NORTH], AUTHORITY["EPSG","4326"]], PROJECTION["Mercator_1SP"], PARAMETER["semi_minor", 6378137.0], PARAMETER["latitude_of_origin", 0.0], PARAMETER["central_meridian", 0.0], PARAMETER["scale_factor", 1.0], PARAMETER["false_easting", 0.0], PARAMETER["false_northing", 0.0], UNIT["m", 1.0], AXIS["x", EAST], AXIS["y", NORTH], AUTHORITY["EPSG","900913"]], AUTHORITY["EPSG","8011113"]]'
+    return map_meta
+
+def gather_utm_meta3(epsg_str,epsg):
+    map_meta = {}
     map_meta['grid_mapping_name'] = "transverse_mercator"
     map_meta['longitude_of_central_meridian'] = 9.0
     map_meta['latitude_of_projection_origin'] = 50.0 
@@ -90,7 +101,10 @@ def copy_nc(infile, outfile, exclude=None):
                 dst[name][:] = src[name][:]
 
                 # copy variable attributes all at once via dictionary
-                dst[name].setncatts(src[name].__dict__)
+                #dst[name].setncatts(src[name].__dict__)
+                for ncattr in src[name].ncattrs():
+                        if ncattr!='_FillValue':
+                            dst[name].setncattr(ncattr, src[name].getncattr(ncattr))
     return dst
 
 

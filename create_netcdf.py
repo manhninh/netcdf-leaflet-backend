@@ -55,24 +55,10 @@ def createDimensions():
     transformer=Transformer.from_crs(4326, epsg)
     locationLongTransformed,locationLatTransformed = transformer.transform(locationLat,locationLong)
     time[:] = np.round(times[:],2) #converting hours to integer
-
    
-   
-    x[:] = longitudes[:] #+locationLongTransformed #*resX+locationLong
-    y[:] = latitudes[:] #:-1+locationLatTransformed#*resY+locationLat
+    x[:] = longitudes[:]+locationLongTransformed #*resX+locationLong
+    y[:] = latitudes[::-1]+locationLatTransformed#*resY+locationLat
 
-    lon = ncout.createVariable('lon', np.dtype('double').char, ('y','x'))
-    vin = ncin.variables['Lon']
-    for ncattr in vin.ncattrs():
-        lon.setncattr(ncattr, vin.getncattr(ncattr))
-    lon[:]= vin[:]
-
-    lat = ncout.createVariable('lat', np.dtype('double').char, ('y','x'))
-    vin = ncin.variables['Lat']
-    for ncattr in vin.ncattrs():
-        lat.setncattr(ncattr, vin.getncattr(ncattr))
-    
-    lat[:] = vin[:]
 
 
 #creating vars specified in Config
@@ -83,17 +69,19 @@ def createVars():
         if var_name in attributes:
             var_name=var_name.replace('.','_') #
             if  len(vin.dimensions)==3:
-                data[var_name] =ncout.createVariable(var_name,np.dtype('double').char,('time','y','x',),fill_value=vin._FillValue)
+                fill_val=vin._FillValue if hasattr(vin, '_FillValue') else 999
+                data[var_name] =ncout.createVariable(var_name,np.dtype('double').char,('time','y','x',),fill_value=fill_val)
                 for ncattr in vin.ncattrs():
                     if ncattr!='_FillValue':
                         data[var_name].setncattr(ncattr, vin.getncattr(ncattr))
                 data[var_name][:]=vin[:]
                 data[var_name][:]=data[var_name][:,::-1]
-                data[var_name].setncattr('grid_mapping', 'crs')
+           #     data[var_name].setncattr('grid_mapping', 'crs')
             elif len(vin.dimensions)==4:
                 for h in heightlevels:
                     var_height_name=var_name+'_'+str(h).replace('.','_')# adding height value to var name
-                    data[var_height_name] =ncout.createVariable(var_height_name,np.dtype('double').char,('time','y','x',))
+                    fill_val=vin._FillValue if hasattr(vin, '_FillValue') else 999
+                    data[var_height_name] =ncout.createVariable(var_height_name,np.dtype('double').char,('time','y','x',),fill_value=fill_val)
                     for ncattr in vin.ncattrs():
                         if ncattr!='_FillValue':
                             data[var_height_name].setncattr(ncattr, vin.getncattr(ncattr))
@@ -101,7 +89,7 @@ def createVars():
                     heightIndex=np.where(np.array(heights)==h) #find height by value
                     data[var_height_name][:]=np.array(vin)[:,heightIndex,:,:] #Getting slice of array by height index
                     data[var_height_name][:]=data[var_height_name][:,::-1]
-                    data[var_height_name].setncattr('grid_mapping', 'crs')
+            #        data[var_height_name].setncattr('grid_mapping', 'crs')
             
 
 
@@ -120,7 +108,7 @@ def add_global_attrs():
 #-----------------
 
 # open a netCDF file to read
-filename = sys.path[0]+"/inputFiles/NewSim.nc"
+filename = sys.path[0]+"/inputFiles/BVOC_Mainz_IsoOff_2018-07-06_05.00.00.nc"
 ncin = Dataset(filename, 'r', format='NETCDF4')
 
 #global attributes
@@ -158,7 +146,7 @@ ncout = Dataset(sys.path[0]+'/outputFiles/'+ projectname +'.nc', 'w', format='NE
 
 createDimensions()
 createVars()
-add_grid_mapping(grid_mapping)
+#add_grid_mapping(grid_mapping)
 #ncout = utils.add_proj(ncout,epsg)
 ncout.Conventions='CF-1.7'
 
