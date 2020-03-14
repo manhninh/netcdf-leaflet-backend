@@ -51,14 +51,14 @@ def createDimensions():
     x.units = 'm'
     x.axis = 'X'
 
-    #resX,resY =utils.calculatePixelSize(locationLat,1,1)
+    resX,resY =utils.calculatePixelSize(locationLat,1,1)
     # copy axis from original dataset
     transformer=Transformer.from_crs(4326, epsg)
     locationLongTransformed,locationLatTransformed = transformer.transform(locationLat,locationLong)
     time[:] = np.round(times[:],2) #converting hours to integer
    
-    x[:] = longitudes[::-1]+locationLongTransformed #*resX+locationLong
-    y[:] = latitudes[:]+locationLatTransformed#*resY+locationLat :-1
+    x[:] = longitudes[::-1]*resX+locationLong
+    y[:] = latitudes[:]*resY+locationLat
 
 
 
@@ -99,21 +99,21 @@ def add_grid_mapping(grid_mapping):
     data['crs'] =ncout.createVariable('crs',np.dtype('c').char)
     utils.addGridMappingVars(data['crs'],grid_mapping)
     affine=Affine.rotation(58.0)
-    ratio=1.0#math.pi
-    elt_0_0=str(affine.a/ratio)
-    elt_0_1=str(affine.b/ratio)
-    elt_0_2=str(918079.626281209) #918079.626281209)#0.0) #446044.8576076973
-    elt_1_0=str(affine.d/ratio)
-    elt_1_1=str(affine.e/ratio)
-    elt_1_2=str(6445039.217828758) #6445039.217828758) #5538108.209966961
+    # ratio=1.0#math.pi
+    elt_0_0=str(affine.a)
+    elt_0_1=str(affine.b)
+# elt_0_2=str(918079.626281209) #918079.626281209)#0.0) #446044.8576076973
+    elt_1_0=str(affine.d)
+    elt_1_1=str(affine.e)
+    # elt_1_2=str(6445039.217828758) #6445039.217828758) #5538108.209966961
 
-    data['crs'].grid_mapping_name= "mercator"
-    data['crs'].longitude_of_central_meridian= 0.0
-    data['crs'].latitude_of_projection_origin= 0.0 
-    data['crs'].standard_parallel= 0.02
-    data['crs']._CoordinateTransformType= "Projection"
-    data['crs']._CoordinateAxisTypes= "GeoX GeoY"
-    data['crs'].spatial_ref = 'FITTED_CS["BPAF", PARAM_MT["Affine", PARAMETER["num_row", 3], PARAMETER["num_col", 3], PARAMETER["elt_0_0",'+elt_0_0+'], PARAMETER["elt_0_1", '+elt_0_1+'], PARAMETER["elt_0_2", '+elt_0_2+'], PARAMETER["elt_1_0", '+elt_1_0+'], PARAMETER["elt_1_1", '+elt_1_1+'], PARAMETER["elt_1_2", '+elt_1_2+']], PROJCS["WGS84 / Google Mercator", GEOGCS["WGS 84", DATUM["World Geodetic System 1984", SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]], AUTHORITY["EPSG","6326"]], PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]], UNIT["degree", 0.017453292519943295], AXIS["Longitude", EAST], AXIS["Latitude", NORTH], AUTHORITY["EPSG","4326"]], PROJECTION["Mercator_1SP"], PARAMETER["semi_minor", 6378137.0], PARAMETER["latitude_of_origin", 0.0], PARAMETER["central_meridian", 0.0], PARAMETER["scale_factor", 1.0], PARAMETER["false_easting", 0.0], PARAMETER["false_northing", 0.0], UNIT["m", 1.0], AXIS["x", EAST], AXIS["y", NORTH], AUTHORITY["EPSG","900913"]], AUTHORITY["EPSG","8011113"]]'
+    data['crs'].grid_mapping_name= "latitude_longitude"
+    data['crs'].GeoTransform= "-180 "+elt_0_0+" "+elt_0_1+" 90 "+elt_1_0+" "+elt_1_1
+    data['crs'].inverse_flattening= 298.257223563
+    data['crs'].long_name= "coordinate reference system"
+    data['crs'].longitude_of_prime_meridian= 0.0
+    data['crs'].semi_major_axis= 6378137.0
+    data['crs'].spatial_ref = 'GEOGCS["WGS84",DATUM["WGS_1984",AUTHORITY["EPSG","4326"]]'
     print(data['crs'].spatial_ref)
 def add_global_attrs():
     data={}
