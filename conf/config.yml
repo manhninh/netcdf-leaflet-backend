@@ -1,12 +1,12 @@
 general:
-    EPSG: 25832 #900913 #25832 #900913 # # #3857
+    EPSG: 900913 #900913 #25832 #900913 # # #3857
     attributes_to_read:
         - TSurf
         #- Albedo
-        # - WindDir
-        #- T
+        # - WindSpd
+        # - T
     project_name: test #rotated-pole #test #also used for workspacename in geoserver
-    height_levels: [0.3,1.5,40.5]
+    height_levels: [0.3,40.5]
     grid_mapping: "latitude_longitude" #"ETRS89 / UTM zone 32N (N-E)" #"JapanOrtho.09 09"  # albers_conical_equal_area
 geoserver:
     url: http://localhost:8080/geoserver

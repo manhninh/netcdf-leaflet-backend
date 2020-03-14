@@ -53,23 +53,23 @@ def createDimensions():
     y.standard_name = standardYName
     y.long_name = 'y coordinate of projection'
     y.units = yUnits
-    y._CoordinateAxisType = "GeoY"
+    #y._CoordinateAxisType = "GeoY"
 
     # create longitude axis
     x = ncout.createVariable(dimXName, np.dtype('double').char, (dimXName))
     x.standard_name = standardXName
     x.long_name = 'x coordinate of projection'
     x.units = xUnits
-    x._CoordinateAxisType = "GeoX"
+    #x._CoordinateAxisType = "GeoX"
 
     resX,resY =utils.calculatePixelSize(locationLat,1,1)
     # copy axis from original dataset
     transformer=Transformer.from_crs(4326, epsg)
-    #locationLongTransformed,locationLatTransformed = transformer.transform(locationLat,locationLong)
+    locationLongTransformed,locationLatTransformed = transformer.transform(locationLat,locationLong)
     time[:] = np.round(times[:],2) #converting hours to integer
    
-    x[:] = longitudes[::-1]*resX+locationLong
-    y[:] = latitudes[:]*resY+locationLat
+    x[:] = longitudes[::-1]+locationLongTransformed #*resX+locationLong# 
+    y[:] = latitudes[:]+locationLatTransformed  #*resY+locationLat#
 
 
 
@@ -103,10 +103,10 @@ def createVars():
                     data[var_height_name][:]=data[var_height_name][:,::-1]
                     data[var_height_name].setncattr('grid_mapping', crs)
             
-def add_grid_mapping(grid_mapping):
+def add_grid_mapping(crs):
     data={}
     data[crs] =ncout.createVariable(crs,"S1")
-    utils.addGridMappingVars(data[crs],"rotated_latitude_longitude")
+    utils.addGridMappingVars(data[crs],crs)
 #     affine=Affine.rotation(58.0)
 #     # ratio=1.0#math.pi
 #     elt_0_0=str(affine.a)
@@ -171,7 +171,7 @@ ncout = Dataset(sys.path[0]+'/outputFiles/'+ projectname +'.nc', 'w', format='NE
 
 createDimensions()
 createVars()
-add_grid_mapping(grid_mapping)
+add_grid_mapping(crs)
 #ncout = utils.add_proj(ncout,epsg)
 ncout.Conventions='CF-1.7'
 

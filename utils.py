@@ -70,12 +70,12 @@ def addGridMappingVars(var,grid_mapping):
     elif grid_mapping=="mercator":
         var.grid_mapping_name= grid_mapping
         affine=Affine.rotation(58.0)
-        ratio=1.0
-        elt_0_0=str(affine.a/ratio)
-        elt_0_1=str(affine.b/ratio)
+        ratio=8
+        elt_0_0=str(math.cos(58*math.pi)/180)
+        elt_0_1=str(math.sin(58*math.pi)/180)
         elt_0_2=str(918079.626281209) #918079.626281209)#0.0) #446044.8576076973
-        elt_1_0=str(affine.d/ratio)
-        elt_1_1=str(affine.e/ratio)
+        elt_1_0=str(-math.sin(58*math.pi)/180)
+        elt_1_1=str(math.cos(58*math.pi)/180)
         elt_1_2=str(6445039.217828758) #6445039.217828758) #5538108.209966961
 
 
@@ -85,6 +85,18 @@ def addGridMappingVars(var,grid_mapping):
         var._CoordinateTransformType= "Projection"
         var._CoordinateAxisTypes= "GeoX GeoY"
         var.spatial_ref= 'FITTED_CS["BPAF", PARAM_MT["Affine", PARAMETER["num_row", 3], PARAMETER["num_col", 3], PARAMETER["elt_0_0",'+elt_0_0+'], PARAMETER["elt_0_1", '+elt_0_1+'], PARAMETER["elt_0_2", '+elt_0_2+'], PARAMETER["elt_1_0", '+elt_1_0+'], PARAMETER["elt_1_1", '+elt_1_1+'], PARAMETER["elt_1_2", '+elt_1_2+']], PROJCS["WGS84 / Google Mercator", GEOGCS["WGS 84", DATUM["World Geodetic System 1984", SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]], AUTHORITY["EPSG","6326"]], PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]], UNIT["degree", 0.017453292519943295], AXIS["Longitude", EAST], AXIS["Latitude", NORTH], AUTHORITY["EPSG","4326"]], PROJECTION["Mercator_1SP"], PARAMETER["semi_minor", 6378137.0], PARAMETER["latitude_of_origin", 0.0], PARAMETER["central_meridian", 0.0], PARAMETER["scale_factor", 1.0], PARAMETER["false_easting", 0.0], PARAMETER["false_northing", 0.0], UNIT["m", 1.0], AXIS["x", EAST], AXIS["y", NORTH], AUTHORITY["EPSG","900913"]], AUTHORITY["EPSG","8011113"]]'
+ 
+        return var
+    elif grid_mapping=="mercator2":
+        var.grid_mapping_name= grid_mapping
+
+        var.longitude_of_central_meridian= 0.0
+        var.latitude_of_projection_origin= 0.0 
+        var.standard_parallel= 0.0
+        var._CoordinateTransformType= "Projection"
+        var._CoordinateAxisTypes= "GeoX GeoY"
+        var.spatial_ref= 'PROJCS["Hotine_Oblique_Mercator_Azimuth_Center",GEOGCS["GCS_WGS_1984",DATUM["D_unknown",SPHEROID["WGS84",6378137,298.257223563]],PRIMEM["Greenwich",0],UNIT["Degree",0.017453292519943295]],PROJECTION["Hotine_Oblique_Mercator_Azimuth_Center"],PARAMETER["latitude_of_center",50.0],PARAMETER["longitude_of_center",8.25],PARAMETER["rectified_grid_angle",'+str(180-58)+'],PARAMETER["scale_factor",1],PARAMETER["false_easting",0],PARAMETER["false_northing",0],UNIT["m",1.0], AUTHORITY["EPSG","8011112"]]'
+
 
     return var
 
