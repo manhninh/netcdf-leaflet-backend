@@ -19,6 +19,7 @@ import numpy as np
 import sys, math,os
 import utils
 from pyproj import Transformer
+from affine import Affine
 
 
 #Creating Dimensions
@@ -76,7 +77,7 @@ def createVars():
                         data[var_name].setncattr(ncattr, vin.getncattr(ncattr))
                 data[var_name][:]=vin[:]
                 data[var_name][:]=data[var_name][:,::-1]
-           #     data[var_name].setncattr('grid_mapping', 'crs')
+                data[var_name].setncattr('grid_mapping', 'crs')
             elif len(vin.dimensions)==4:
                 for h in heightlevels:
                     var_height_name=var_name+'_'+str(h).replace('.','_')# adding height value to var name
@@ -89,7 +90,7 @@ def createVars():
                     heightIndex=np.where(np.array(heights)==h) #find height by value
                     data[var_height_name][:]=np.array(vin)[:,heightIndex,:,:] #Getting slice of array by height index
                     data[var_height_name][:]=data[var_height_name][:,::-1]
-            #        data[var_height_name].setncattr('grid_mapping', 'crs')
+                    data[var_height_name].setncattr('grid_mapping', 'crs')
             
 
 
@@ -97,8 +98,23 @@ def add_grid_mapping(grid_mapping):
     data={}
     data['crs'] =ncout.createVariable('crs',np.dtype('c').char)
     utils.addGridMappingVars(data['crs'],grid_mapping)
+    affine=Affine.rotation(58.0)
+    ratio=1.0#math.pi
+    elt_0_0=str(affine.a/ratio)
+    elt_0_1=str(affine.b/ratio)
+    elt_0_2=str(918079.626281209) #918079.626281209)#0.0) #446044.8576076973
+    elt_1_0=str(affine.d/ratio)
+    elt_1_1=str(affine.e/ratio)
+    elt_1_2=str(6445039.217828758) #6445039.217828758) #5538108.209966961
 
-
+    data['crs'].grid_mapping_name= "mercator"
+    data['crs'].longitude_of_central_meridian= 0.0
+    data['crs'].latitude_of_projection_origin= 0.0 
+    data['crs'].standard_parallel= 0.02
+    data['crs']._CoordinateTransformType= "Projection"
+    data['crs']._CoordinateAxisTypes= "GeoX GeoY"
+    data['crs'].spatial_ref = 'FITTED_CS["BPAF", PARAM_MT["Affine", PARAMETER["num_row", 3], PARAMETER["num_col", 3], PARAMETER["elt_0_0",'+elt_0_0+'], PARAMETER["elt_0_1", '+elt_0_1+'], PARAMETER["elt_0_2", '+elt_0_2+'], PARAMETER["elt_1_0", '+elt_1_0+'], PARAMETER["elt_1_1", '+elt_1_1+'], PARAMETER["elt_1_2", '+elt_1_2+']], PROJCS["WGS84 / Google Mercator", GEOGCS["WGS 84", DATUM["World Geodetic System 1984", SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]], AUTHORITY["EPSG","6326"]], PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]], UNIT["degree", 0.017453292519943295], AXIS["Longitude", EAST], AXIS["Latitude", NORTH], AUTHORITY["EPSG","4326"]], PROJECTION["Mercator_1SP"], PARAMETER["semi_minor", 6378137.0], PARAMETER["latitude_of_origin", 0.0], PARAMETER["central_meridian", 0.0], PARAMETER["scale_factor", 1.0], PARAMETER["false_easting", 0.0], PARAMETER["false_northing", 0.0], UNIT["m", 1.0], AXIS["x", EAST], AXIS["y", NORTH], AUTHORITY["EPSG","900913"]], AUTHORITY["EPSG","8011113"]]'
+    print(data['crs'].spatial_ref)
 def add_global_attrs():
     data={}
     data['global_attribute'] =ncout.createVariable('global_attribute',np.dtype('c').char)
@@ -146,7 +162,7 @@ ncout = Dataset(sys.path[0]+'/outputFiles/'+ projectname +'.nc', 'w', format='NE
 
 createDimensions()
 createVars()
-#add_grid_mapping(grid_mapping)
+add_grid_mapping(grid_mapping)
 #ncout = utils.add_proj(ncout,epsg)
 ncout.Conventions='CF-1.7'
 
