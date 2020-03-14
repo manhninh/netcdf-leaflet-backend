@@ -14,6 +14,7 @@
 
 import math,yaml,os,sys
 from urllib.request import urlopen
+from affine import Affine
 
 def calculatePixelSize(latitude,pixelWidth,pixelHeight): #calculate Resolution in degrees when given resolution in meters
     r_earth = 6378.137  #radius of the earth in kilometer
@@ -66,6 +67,25 @@ def addGridMappingVars(var,grid_mapping):
 	    var.scale_factor= 1.0
 	    var.false_easting= 0.0
 	    var.false_northing= 0.0
+    elif grid_mapping=="mercator":
+        var.grid_mapping_name= grid_mapping
+        affine=Affine.rotation(58.0)
+        ratio=1.0
+        elt_0_0=str(affine.a/ratio)
+        elt_0_1=str(affine.b/ratio)
+        elt_0_2=str(918079.626281209) #918079.626281209)#0.0) #446044.8576076973
+        elt_1_0=str(affine.d/ratio)
+        elt_1_1=str(affine.e/ratio)
+        elt_1_2=str(6445039.217828758) #6445039.217828758) #5538108.209966961
+
+
+        var.longitude_of_central_meridian= 0.0
+        var.latitude_of_projection_origin= 0.0 
+        var.standard_parallel= 0.0
+        var._CoordinateTransformType= "Projection"
+        var._CoordinateAxisTypes= "GeoX GeoY"
+        var.spatial_ref= 'FITTED_CS["BPAF", PARAM_MT["Affine", PARAMETER["num_row", 3], PARAMETER["num_col", 3], PARAMETER["elt_0_0",'+elt_0_0+'], PARAMETER["elt_0_1", '+elt_0_1+'], PARAMETER["elt_0_2", '+elt_0_2+'], PARAMETER["elt_1_0", '+elt_1_0+'], PARAMETER["elt_1_1", '+elt_1_1+'], PARAMETER["elt_1_2", '+elt_1_2+']], PROJCS["WGS84 / Google Mercator", GEOGCS["WGS 84", DATUM["World Geodetic System 1984", SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]], AUTHORITY["EPSG","6326"]], PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]], UNIT["degree", 0.017453292519943295], AXIS["Longitude", EAST], AXIS["Latitude", NORTH], AUTHORITY["EPSG","4326"]], PROJECTION["Mercator_1SP"], PARAMETER["semi_minor", 6378137.0], PARAMETER["latitude_of_origin", 0.0], PARAMETER["central_meridian", 0.0], PARAMETER["scale_factor", 1.0], PARAMETER["false_easting", 0.0], PARAMETER["false_northing", 0.0], UNIT["m", 1.0], AXIS["x", EAST], AXIS["y", NORTH], AUTHORITY["EPSG","900913"]], AUTHORITY["EPSG","8011113"]]'
+
     return var
 
 def add_proj(nc_obj,epsg):
@@ -144,11 +164,11 @@ def gather_utm_meta(epsg_str,epsg):
 
     # Assign the zone number
     zone_str = meta.split('zone')[1]
-    map_meta['utm_zone_number'] = float((strip_chars(zone_str.split(',')[0])).strip()[-2:])
+    var.utm_zone_number= float((strip_chars(zone_str.split(',')[0])).strip()[-2:])
 
     # Assign the semi_major_axis
     axis_string = meta.split('spheroid')[1]
-    map_meta['semi_major_axis'] = float(axis_string.split(',')[1])
+    var.semi_major_axis= float(axis_string.split(',')[1])
 
     # Assing the flattening
     map_meta["inverse_flattening"] = float(strip_chars(axis_string.split(',')[2]))

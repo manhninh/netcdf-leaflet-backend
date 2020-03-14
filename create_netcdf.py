@@ -23,14 +23,14 @@ from affine import Affine
 
 
 
-dimXName='rlon'
-standardXName='grid_longitude'
-xUnits='degrees'
-dimYName='rlat'
-standardYName='grid_latitude'
-yUnits='degrees'
+dimXName='x'
+standardXName='projection_x_coordinate' #grid_longitude
+xUnits='m'
+dimYName='y' #rlat
+standardYName='projection_y_coordinate'
+yUnits='m'
 
-crs="rotated_pole"
+crs="mercator"
 
 #Creating Dimensions
 def createDimensions():
