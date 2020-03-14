@@ -22,16 +22,18 @@ from pyproj import Transformer
 from affine import Affine
 
 
-#Creating Dimensions
+
 dimXName='rlon'
 standardXName='grid_longitude'
 xUnits='degrees'
 dimYName='rlat'
 standardYName='grid_latitude'
 yUnits='degrees'
+
+crs="rotated_pole"
+
+#Creating Dimensions
 def createDimensions():
-
-
 
     # define axis size
     ncout.createDimension('time', None)  # unlimited
@@ -86,7 +88,7 @@ def createVars():
                         data[var_name].setncattr(ncattr, vin.getncattr(ncattr))
                 data[var_name][:]=vin[:]
                 data[var_name][:]=data[var_name][:,::-1]
-                data[var_name].setncattr('grid_mapping', 'crs')
+                data[var_name].setncattr('grid_mapping', crs)
             elif len(vin.dimensions)==4:
                 for h in heightlevels:
                     var_height_name=var_name+'_'+str(h).replace('.','_')# adding height value to var name
@@ -99,12 +101,12 @@ def createVars():
                     heightIndex=np.where(np.array(heights)==h) #find height by value
                     data[var_height_name][:]=np.array(vin)[:,heightIndex,:,:] #Getting slice of array by height index
                     data[var_height_name][:]=data[var_height_name][:,::-1]
-                    data[var_height_name].setncattr('grid_mapping', 'crs')
+                    data[var_height_name].setncattr('grid_mapping', crs)
             
 def add_grid_mapping(grid_mapping):
     data={}
-    data['crs'] =ncout.createVariable('crs',np.dtype('c').char)
-    utils.addGridMappingVars(data['crs'],"rotated_latitude_longitude")
+    data[crs] =ncout.createVariable(crs,"S1")
+    utils.addGridMappingVars(data[crs],"rotated_latitude_longitude")
 #     affine=Affine.rotation(58.0)
 #     # ratio=1.0#math.pi
 #     elt_0_0=str(affine.a)
