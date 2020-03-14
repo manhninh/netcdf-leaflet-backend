@@ -23,11 +23,20 @@ from affine import Affine
 
 
 #Creating Dimensions
+dimXName='rlon'
+standardXName='grid_longitude'
+xUnits='degrees'
+dimYName='rlat'
+standardYName='grid_latitude'
+yUnits='degrees'
 def createDimensions():
+
+
+
     # define axis size
     ncout.createDimension('time', None)  # unlimited
-    ncout.createDimension('y', nlat)
-    ncout.createDimension('x', nlon)
+    ncout.createDimension(dimYName, nlat)
+    ncout.createDimension(dimXName, nlon)
     ncout.createDimension('z', nlon)
 
     # create time axis
@@ -38,23 +47,23 @@ def createDimensions():
     time.axis = 'T'
 
     # create latitude axis
-    y = ncout.createVariable('y', np.dtype('double').char, ('y'))
-    y.standard_name = 'projection_y_coordinate'
+    y = ncout.createVariable(dimYName, np.dtype('double').char, (dimYName))
+    y.standard_name = standardYName
     y.long_name = 'y coordinate of projection'
-    y.units = 'm'
-    y.axis = 'Y'
+    y.units = yUnits
+    y._CoordinateAxisType = "GeoY"
 
     # create longitude axis
-    x = ncout.createVariable('x', np.dtype('double').char, ('x'))
-    x.standard_name = 'projection_x_coordinate'
+    x = ncout.createVariable(dimXName, np.dtype('double').char, (dimXName))
+    x.standard_name = standardXName
     x.long_name = 'x coordinate of projection'
-    x.units = 'm'
-    x.axis = 'X'
+    x.units = xUnits
+    x._CoordinateAxisType = "GeoX"
 
     resX,resY =utils.calculatePixelSize(locationLat,1,1)
     # copy axis from original dataset
     transformer=Transformer.from_crs(4326, epsg)
-    locationLongTransformed,locationLatTransformed = transformer.transform(locationLat,locationLong)
+    #locationLongTransformed,locationLatTransformed = transformer.transform(locationLat,locationLong)
     time[:] = np.round(times[:],2) #converting hours to integer
    
     x[:] = longitudes[::-1]*resX+locationLong
@@ -71,7 +80,7 @@ def createVars():
             var_name=var_name.replace('.','_') #
             if  len(vin.dimensions)==3:
                 fill_val=vin._FillValue if hasattr(vin, '_FillValue') else 999
-                data[var_name] =ncout.createVariable(var_name,np.dtype('double').char,('time','y','x',),fill_value=fill_val)
+                data[var_name] =ncout.createVariable(var_name,np.dtype('double').char,('time',dimYName,dimXName,),fill_value=fill_val)
                 for ncattr in vin.ncattrs():
                     if ncattr!='_FillValue':
                         data[var_name].setncattr(ncattr, vin.getncattr(ncattr))
@@ -82,7 +91,7 @@ def createVars():
                 for h in heightlevels:
                     var_height_name=var_name+'_'+str(h).replace('.','_')# adding height value to var name
                     fill_val=vin._FillValue if hasattr(vin, '_FillValue') else 999
-                    data[var_height_name] =ncout.createVariable(var_height_name,np.dtype('double').char,('time','y','x',),fill_value=fill_val)
+                    data[var_height_name] =ncout.createVariable(var_height_name,np.dtype('double').char,('time',dimYName,dimXName,),fill_value=fill_val)
                     for ncattr in vin.ncattrs():
                         if ncattr!='_FillValue':
                             data[var_height_name].setncattr(ncattr, vin.getncattr(ncattr))
@@ -92,29 +101,27 @@ def createVars():
                     data[var_height_name][:]=data[var_height_name][:,::-1]
                     data[var_height_name].setncattr('grid_mapping', 'crs')
             
-
-
 def add_grid_mapping(grid_mapping):
     data={}
     data['crs'] =ncout.createVariable('crs',np.dtype('c').char)
-    utils.addGridMappingVars(data['crs'],grid_mapping)
-    affine=Affine.rotation(58.0)
-    # ratio=1.0#math.pi
-    elt_0_0=str(affine.a)
-    elt_0_1=str(affine.b)
-# elt_0_2=str(918079.626281209) #918079.626281209)#0.0) #446044.8576076973
-    elt_1_0=str(affine.d)
-    elt_1_1=str(affine.e)
-    # elt_1_2=str(6445039.217828758) #6445039.217828758) #5538108.209966961
+    utils.addGridMappingVars(data['crs'],"rotated_latitude_longitude")
+#     affine=Affine.rotation(58.0)
+#     # ratio=1.0#math.pi
+#     elt_0_0=str(affine.a)
+#     elt_0_1=str(affine.b)
+# # elt_0_2=str(918079.626281209) #918079.626281209)#0.0) #446044.8576076973
+#     elt_1_0=str(affine.d)
+#     elt_1_1=str(affine.e)
+#     # elt_1_2=str(6445039.217828758) #6445039.217828758) #5538108.209966961
 
-    data['crs'].grid_mapping_name= "latitude_longitude"
-    data['crs'].GeoTransform= "-180 "+elt_0_0+" "+elt_0_1+" 90 "+elt_1_0+" "+elt_1_1
-    data['crs'].inverse_flattening= 298.257223563
-    data['crs'].long_name= "coordinate reference system"
-    data['crs'].longitude_of_prime_meridian= 0.0
-    data['crs'].semi_major_axis= 6378137.0
-    data['crs'].spatial_ref = 'GEOGCS["WGS84",DATUM["WGS_1984",AUTHORITY["EPSG","4326"]]'
-    print(data['crs'].spatial_ref)
+#     data['crs'].grid_mapping_name= "latitude_longitude"
+#     data['crs'].GeoTransform= "-180 "+elt_0_0+" "+elt_0_1+" 90 "+elt_1_0+" "+elt_1_1
+#     data['crs'].inverse_flattening= 298.257223563
+#     data['crs'].long_name= "coordinate reference system"
+#     data['crs'].longitude_of_prime_meridian= 0.0
+#     data['crs'].semi_major_axis= 6378137.0
+#     data['crs'].spatial_ref = 'GEOGCS["WGS84",DATUM["WGS_1984",AUTHORITY["EPSG","4326"]]'
+#     print(data['crs'].spatial_ref)
 def add_global_attrs():
     data={}
     data['global_attribute'] =ncout.createVariable('global_attribute',np.dtype('c').char)
