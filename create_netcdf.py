@@ -16,21 +16,26 @@
 
 from netCDF4 import Dataset,Variable
 import numpy as np
-import sys, math,os
-import utils
+import sys, math, os
+import utils, makeMap
 from pyproj import Transformer
 from affine import Affine
 
+# dimXName='rlon' # #
+# standardXName='grid_longitude' # #
+# xUnits='degrees' # #
+# dimYName='rlat' # # 
+# standardYName='grid_latitude'#  #
+# yUnits='degrees' # #
 
+dimXName='x' #rlon #
+standardXName='projection_x_coordinate' #grid_longitude #
+xUnits='m' # #degrees
+dimYName='y' # # rlat
+standardYName='projection_y_coordinate'#grid_latitude  #
+yUnits='m' # #degrees
 
-dimXName='x'
-standardXName='projection_x_coordinate' #grid_longitude
-xUnits='m'
-dimYName='y' #rlat
-standardYName='projection_y_coordinate'
-yUnits='m'
-
-crs="mercator"
+crs="mercator" #oblique_stereographic # mercator #rotated_latitude_longitude
 
 #Creating Dimensions
 def createDimensions():
@@ -68,10 +73,8 @@ def createDimensions():
     locationLongTransformed,locationLatTransformed = transformer.transform(locationLat,locationLong)
     time[:] = np.round(times[:],2) #converting hours to integer
    
-    x[:] = longitudes[::-1]+locationLongTransformed #*resX+locationLong# 
-    y[:] = latitudes[:]+locationLatTransformed  #*resY+locationLat#
-
-
+    x[:] = longitudes[::-1]+locationLongTransformed #*resX+locationLong
+    y[:] = latitudes[:]+locationLatTransformed #*resY+locationLat
 
 #creating vars specified in Config
 #height currently not implemented
@@ -79,8 +82,10 @@ def createVars():
     for var_name, vin in ncin.variables.items():
         data={}
         if var_name in attributes:
+
             var_name=var_name.replace('.','_') #
             if  len(vin.dimensions)==3:
+                makeMap.addOverlay(vin.name,vin.long_name,False)
                 fill_val=vin._FillValue if hasattr(vin, '_FillValue') else 999
                 data[var_name] =ncout.createVariable(var_name,np.dtype('double').char,('time',dimYName,dimXName,),fill_value=fill_val)
                 for ncattr in vin.ncattrs():
@@ -89,7 +94,11 @@ def createVars():
                 data[var_name][:]=vin[:]
                 data[var_name][:]=data[var_name][:,::-1]
                 data[var_name].setncattr('grid_mapping', crs)
+
+                makeMap.addLayer(l_name=vin.name,l_mappingName=vin.long_name)
+
             elif len(vin.dimensions)==4:
+                makeMap.addOverlay(vin.name,vin.long_name,True)
                 for h in heightlevels:
                     var_height_name=var_name+'_'+str(h).replace('.','_')# adding height value to var name
                     fill_val=vin._FillValue if hasattr(vin, '_FillValue') else 999
@@ -102,28 +111,16 @@ def createVars():
                     data[var_height_name][:]=np.array(vin)[:,heightIndex,:,:] #Getting slice of array by height index
                     data[var_height_name][:]=data[var_height_name][:,::-1]
                     data[var_height_name].setncattr('grid_mapping', crs)
+                    
+                    heightString=str(h)+' Meter'
+                    makeMap.addHeightLayer(var_height_name,heightString,vin.long_name)
+                    makeMap.addHeight(str(h).replace('.','_'),heightString)
             
 def add_grid_mapping(crs):
     data={}
     data[crs] =ncout.createVariable(crs,"S1")
     utils.addGridMappingVars(data[crs],crs)
-#     affine=Affine.rotation(58.0)
-#     # ratio=1.0#math.pi
-#     elt_0_0=str(affine.a)
-#     elt_0_1=str(affine.b)
-# # elt_0_2=str(918079.626281209) #918079.626281209)#0.0) #446044.8576076973
-#     elt_1_0=str(affine.d)
-#     elt_1_1=str(affine.e)
-#     # elt_1_2=str(6445039.217828758) #6445039.217828758) #5538108.209966961
 
-#     data['crs'].grid_mapping_name= "latitude_longitude"
-#     data['crs'].GeoTransform= "-180 "+elt_0_0+" "+elt_0_1+" 90 "+elt_1_0+" "+elt_1_1
-#     data['crs'].inverse_flattening= 298.257223563
-#     data['crs'].long_name= "coordinate reference system"
-#     data['crs'].longitude_of_prime_meridian= 0.0
-#     data['crs'].semi_major_axis= 6378137.0
-#     data['crs'].spatial_ref = 'GEOGCS["WGS84",DATUM["WGS_1984",AUTHORITY["EPSG","4326"]]'
-#     print(data['crs'].spatial_ref)
 def add_global_attrs():
     data={}
     data['global_attribute'] =ncout.createVariable('global_attribute',np.dtype('c').char)
@@ -153,6 +150,7 @@ projectname=cfg['general']['project_name']
 heightlevels=cfg['general']['height_levels']
 grid_mapping=cfg['general']['grid_mapping']
 
+
 # get axis data
 times = ncin.variables['Time']
 latitudes = ncin.variables['GridsJ']
@@ -163,6 +161,8 @@ heights = ncin.variables['GridsK']
 nlat = len(latitudes)
 nlon = len(longitudes)
 ntime = len(times)
+
+makeMap.createMap('-'.join([year,month,day]),timeString,ntime-1,int(times[1]*60),locationLat,locationLong)
 
 # open netCDF file to write
 if not os.path.isdir(sys.path[0]+'/outputFiles/'):
@@ -178,6 +178,8 @@ ncout.Conventions='CF-1.7'
 # close files
 ncin.close()
 ncout.close()
+
+makeMap.createOverlays()
 
 
 

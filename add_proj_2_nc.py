@@ -12,7 +12,7 @@ def strip_chars(edit_str, bad_chars='[(){}<>,"_]=\nns'):
     return result
 def gather_utm_meta(epsg_str,epsg):
     affine=Affine.rotation(58.0)
-    ratio=math.pi
+    ratio=1.0 #math.pi
     elt_0_0=str(affine.a/ratio)
     elt_0_1=str(affine.b/ratio)
     elt_0_2=str(918079.626281209) #918079.626281209)#0.0) #446044.8576076973

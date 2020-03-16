@@ -1,0 +1,64 @@
+    
+var activeHeightLayer=null//refering to actual selected overlay
+var activeHeight=null//refering to actual height
+
+var WMS_URL = "{{ url }}/wms?"; 
+var timeOptions = {updateTimeDimension: true}
+
+{% for layer in layers %}
+    var {{ layer.name }}Layer = L.tileLayer.betterWms(WMS_URL, { 
+        layers: '{{ workspaceName }}:{{ layer.name }}',
+        format: 'image/png', 
+        transparent: true,
+    });
+    var {{ layer.name }}TimeLayer = L.timeDimension.layer.wms({{ layer.name }}Layer,timeOptions)
+{% endfor %}
+
+//Prepare Controls
+var controlOptions = {
+        // Make the "Landmarks" group exclusive (use radio inputs)
+        exclusiveGroups: ["Climate Elements","Heights"],
+        // Show a checkbox next to non-exclusive group labels for toggling all
+        groupCheckboxes: true,
+        collapsed: false
+    };
+
+//BasicControl
+
+var groupedOverlays = {
+    "Climate Elements": {
+        {% for overlay in overlays %} "{{ overlay.longname }}": {{ overlay.objectName }},
+        {% endfor %}
+    }
+};
+
+
+//HeightControl
+//Those dummys are needed because leaflet control needs layer to be removed and added
+//They are only used to reset the HeightControl, but never displayed
+
+{% for height in heights %} var dummy{{height.name}}=L.marker([0,0]); 
+{% endfor %}
+
+var heightOverlays = {
+    "Heights": {
+        {% for height in heights %} "{{height.longname}}": dummy{{height.name}},
+        {% endfor %}
+    }
+};
+var HeightControl=L.control.groupedLayers(null, heightOverlays,controlOptions);
+
+
+//Mappings (used for ading and removing layers)
+
+//LayerMapping
+let layerMapping = new Map();
+{% for layer in layers %} layerMapping.set('{{layer.mappingName}}',{{layer.name}}TimeLayer);
+{% endfor %}
+
+//DummyMapping
+let dummyMapping = new Map();
+{% for height in heights %} dummyMapping.set('{{height.longname}}',dummy{{height.name}});
+{% endfor %}
+
+    

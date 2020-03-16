@@ -28,14 +28,14 @@ cat=Catalog("http://localhost:8080/geoserver/rest/", "admin", "geoserver")
 #get config variables
 cfg=utils.readConf()
 projectname=cfg['general']['project_name']
+workspace=cfg['geoserver']['workspaceName']
 geoserver_url=cfg['geoserver']['url']
 
 #Check if Config File is correct and NETCDF File existing
 if not os.path.exists(sys.path[0]+'/outputFiles/'+projectname+'.nc'):
     logging.error('File '+sys.path[0]+'/outputFiles/'+projectname+'.nc does not exist')
     exit
-
-workspace='NetCDF'#[FIX] workspace name is used static and not created right now
+    
 coveragestore=projectname
 headers_zip = {'content-type': 'application/zip'}
 headers_xml = {'content-type': 'text/xml'}

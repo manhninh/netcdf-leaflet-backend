@@ -70,7 +70,6 @@ def addGridMappingVars(var,grid_mapping):
     elif grid_mapping=="mercator":
         var.grid_mapping_name= grid_mapping
         affine=Affine.rotation(58.0)
-        ratio=8
         elt_0_0=str(math.cos(58*math.pi)/180)
         elt_0_1=str(math.sin(58*math.pi)/180)
         elt_0_2=str(918079.626281209) #918079.626281209)#0.0) #446044.8576076973
@@ -84,7 +83,9 @@ def addGridMappingVars(var,grid_mapping):
         var.standard_parallel= 0.0
         var._CoordinateTransformType= "Projection"
         var._CoordinateAxisTypes= "GeoX GeoY"
-        var.spatial_ref= 'FITTED_CS["BPAF", PARAM_MT["Affine", PARAMETER["num_row", 3], PARAMETER["num_col", 3], PARAMETER["elt_0_0",'+elt_0_0+'], PARAMETER["elt_0_1", '+elt_0_1+'], PARAMETER["elt_0_2", '+elt_0_2+'], PARAMETER["elt_1_0", '+elt_1_0+'], PARAMETER["elt_1_1", '+elt_1_1+'], PARAMETER["elt_1_2", '+elt_1_2+']], PROJCS["WGS84 / Google Mercator", GEOGCS["WGS 84", DATUM["World Geodetic System 1984", SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]], AUTHORITY["EPSG","6326"]], PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]], UNIT["degree", 0.017453292519943295], AXIS["Longitude", EAST], AXIS["Latitude", NORTH], AUTHORITY["EPSG","4326"]], PROJECTION["Mercator_1SP"], PARAMETER["semi_minor", 6378137.0], PARAMETER["latitude_of_origin", 0.0], PARAMETER["central_meridian", 0.0], PARAMETER["scale_factor", 1.0], PARAMETER["false_easting", 0.0], PARAMETER["false_northing", 0.0], UNIT["m", 1.0], AXIS["x", EAST], AXIS["y", NORTH], AUTHORITY["EPSG","900913"]], AUTHORITY["EPSG","8011113"]]'
+        var.spatial_ref='PROJCS["WGS84 / Google Mercator", GEOGCS["WGS 84", DATUM["World Geodetic System 1984", SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]], AUTHORITY["EPSG","6326"]], PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]], UNIT["degree", 0.017453292519943295], AXIS["Longitude", EAST], AXIS["Latitude", NORTH], AUTHORITY["EPSG","4326"]], PROJECTION["Mercator_1SP"], PARAMETER["semi_minor", 6378137.0], PARAMETER["latitude_of_origin", 0.0], PARAMETER["central_meridian", 0.0], PARAMETER["scale_factor", 1.0], PARAMETER["false_easting", 0.0], PARAMETER["false_northing", 0.0], UNIT["m", 1.0], AXIS["x", EAST], AXIS["y", NORTH], AUTHORITY["EPSG","900913"]]'
+        #var.spatial_ref= 'FITTED_CS["BPAF", PARAM_MT["Affine", PARAMETER["num_row", 3], PARAMETER["num_col", 3], PARAMETER["elt_0_0",'+elt_0_0+'], PARAMETER["elt_0_1", '+elt_0_1+'], PARAMETER["elt_0_2", '+elt_0_2+'], PARAMETER["elt_1_0", '+elt_1_0+'], PARAMETER["elt_1_1", '+elt_1_1+'], PARAMETER["elt_1_2", '+elt_1_2+']], PROJCS["WGS84 / Google Mercator", GEOGCS["WGS 84", DATUM["World Geodetic System 1984", SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]], AUTHORITY["EPSG","6326"]], PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]], UNIT["degree", 0.017453292519943295], AXIS["Longitude", EAST], AXIS["Latitude", NORTH], AUTHORITY["EPSG","4326"]], PROJECTION["Mercator_1SP"], PARAMETER["semi_minor", 6378137.0], PARAMETER["latitude_of_origin", 0.0], PARAMETER["central_meridian", 0.0], PARAMETER["scale_factor", 1.0], PARAMETER["false_easting", 0.0], PARAMETER["false_northing", 0.0], UNIT["m", 1.0], AXIS["x", EAST], AXIS["y", NORTH], AUTHORITY["EPSG","900913"]], AUTHORITY["EPSG","8011113"]]'
+        #var.spatial_ref= 'PARAM_MT["Affine", PARAMETER["num_row", 3], PARAMETER["num_col", 3], PARAMETER["elt_0_0",'+elt_0_0+'], PARAMETER["elt_0_1", '+elt_0_1+'], PARAMETER["elt_0_2", '+elt_0_2+'], PARAMETER["elt_1_0", '+elt_1_0+'], PARAMETER["elt_1_1", '+elt_1_1+'], PARAMETER["elt_1_2", '+elt_1_2+']]'
  
         return var
     elif grid_mapping=="mercator2":
@@ -96,8 +97,32 @@ def addGridMappingVars(var,grid_mapping):
         var._CoordinateTransformType= "Projection"
         var._CoordinateAxisTypes= "GeoX GeoY"
         var.spatial_ref= 'PROJCS["Hotine_Oblique_Mercator_Azimuth_Center",GEOGCS["GCS_WGS_1984",DATUM["D_unknown",SPHEROID["WGS84",6378137,298.257223563]],PRIMEM["Greenwich",0],UNIT["Degree",0.017453292519943295]],PROJECTION["Hotine_Oblique_Mercator_Azimuth_Center"],PARAMETER["latitude_of_center",50.0],PARAMETER["longitude_of_center",8.25],PARAMETER["rectified_grid_angle",'+str(180-58)+'],PARAMETER["scale_factor",1],PARAMETER["false_easting",0],PARAMETER["false_northing",0],UNIT["m",1.0], AUTHORITY["EPSG","8011112"]]'
+    elif grid_mapping=="rotated_latitude_longitude":
+        var.grid_mapping_name= grid_mapping
+        var._CoordinateTransformType= "Projection"
+        var._CoordinateAxisTypes= "GeoX GeoY"
+        var.grid_north_pole_latitude = 37.0
+        var.grid_north_pole_longitude = -153.0
+    elif grid_mapping=="oblique_stereographic":
+        var.grid_mapping_name=grid_mapping
+        var.projection_name = "Amersfoort / RD New"
+        var.semi_major_axis = 6377397.
+        var.inverse_flattening = 299.1528
+        var.latitude_of_projection_origin = 52.15616
+        var.longitude_of_central_meridian = 5.387639
+        var.scale_factor_at_projection_origin = 0.9999079
+        var.false_easting = 155000
+        var.false_northing = 463000
+        var.proj4_params = "+proj=sterea +lat_0=52.15616055555555 +lon_0=5.38763888888889 +k=0.999908 +x_0=155000 +y_0=463000 +ellps=bessel +units=m +towgs84=565.4174,50.3319,465.5542,-0.398957388243134,0.343987817378283,-1.87740163998045,4.0725 +no_defs"
+        var.EPSG_code = "EPSG:28992"
 
-
+    elif grid_mapping=="polar_sterepographic":
+        var.latitude_of_projection_origin = 90.0
+        var.false_northing = 0.0
+        var.straight_vertical_longitude_from_pole = -135.0
+        var.false_easting = 0.0
+        var.scale_factor_at_projection_origin = 0.9330127239227295
+        var.grid_mapping_name = "polar_stereographic"
     return var
 
 def add_proj(nc_obj,epsg):
