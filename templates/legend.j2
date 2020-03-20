@@ -1,13 +1,14 @@
 
-{% for layer in layers %}
-    var {{ layer.name }}Legend = { 
-        "colors": [{% for color in layer.colors %} "{{ color }}",{% endfor %}],
-        "values": [{% for value in layer.values %} "{{ value }}",{% endfor %}],
+{% for style in styles %}
+    var {{ style.name }}Legend = { 
+        "colors": [{% for color in style["colors"] %} "{{ color }}",{% endfor %}],
+        "values": [{% for value in style["values"] %} "{{ value }}",{% endfor %}],
+        "unit": "{{ style.unit }}",
     };
 {% endfor %}
 
 let legendMapping = new Map();
-{% for layer in layers %} legendMapping.set('{{layer.mappingName}}',{{layer.name}}Legend);
+{% for style in styles %} legendMapping.set('{{style.layerMappingName}}',{{style.name}}Legend);
 {% endfor %}
 
 var legend = L.control({position: 'bottomright'});
@@ -15,9 +16,12 @@ var legend = L.control({position: 'bottomright'});
 var legendName=null
 
 function addLegend (map,legendName){
-this.legendName=legendName;
-legend.addTo(map);
-};
+    this.legendName=legendName;
+    legend.addTo(map);
+    };
+function removeLegend (){
+    legend.remove();
+    };
 
 legend.onAdd = function (map) {
     legendObject=legendMapping.get(legendName)

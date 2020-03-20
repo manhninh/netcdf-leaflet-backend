@@ -6,22 +6,17 @@ general:
         - WindSpd
         - T
     project_name: test #rotated-pole #test 
-    height_levels: [0.3,40.5]
-    grid_mapping: "latitude_longitude" #"ETRS89 / UTM zone 32N (N-E)" #"JapanOrtho.09 09"  # albers_conical_equal_area
-    inputFile:  BVOC_Mainz_IsoOff_2018-07-06_05.00.00.nc #NewSimulation_2018-06-23_05.00.00.nc #BVOC_Mainz_IsoOff_2018-07-06_05.00.00.nc #NewSimulation_2018-06-23_05.00.00.nc
+    height_levels: [0.3,10.5,40.5]
+    grid_mapping: "transverse_mercator"  # albers_conical_equal_area
+    inputFile:  BVOC_Mainz_IsoOff_2018-07-06_05.00.00.nc #NewSimulation_2018-06-23_05.00.00.nc # #NewSimulation_2018-06-23_05.00.00.nc #BVOC_Mainz_IsoOff_2018-07-06_05.00.00.nc #NewSimulation_2018-06-23_05.00.00.nc #BVOC_Mainz_IsoOff_2018-07-06_05.00.00.nc #NewSimulation_2018-06-23_05.00.00.nc
 geoserver:
     url: http://localhost:8080/geoserver
     workspaceName: NetCDF
 frontend:
     absolutePath: /Users/eliasborngaesser/src/github.com/eliasborngaesser/netcdf-leaflet/app
 styles: #To be defined in Hex Color Code
-    DefaultMinColor: "#0000ff"
-    DefaultMaxColor: "#ff0000"
-    customColors:
+    DefaultColors: ["#0000ff","#ffff00","#ff0000"]
+    customStyles:
         Albedo:
-            minColor: "#000000"
-            maxColor: "#ffffff"
-    customValues:
-        Albedo:
-            minValue: 0
-            maxValue: 1
+            colors: ["#000000","#ffffff"]
+            values: [0,1]

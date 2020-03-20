@@ -2,24 +2,61 @@ from jinja2 import Environment, PackageLoader, select_autoescape
 import sys,utils
 
 cfg=utils.readConf()
+frontendPath=cfg['frontend']['absolutePath']
 
 env = Environment(
     loader=PackageLoader('styles', 'templates'),
     autoescape=select_autoescape(['html', 'xml'])
 )
-def createStyle(styleName,minValue,maxValue):
-    min_color=cfg['styles']['DefaultMinColor']
-    max_color=cfg['styles']['DefaultMaxColor']
-    #Looking up if custom style defined in Config
+styles=[]
 
-    if styleName in cfg['styles']['customColors']:
-        min_color=cfg['styles']['customColors'][styleName]['minColor']
-        max_color=cfg['styles']['customColors'][styleName]['maxColor']
-    if styleName in cfg['styles']['customValues']:
-        minValue=cfg['styles']['customValues'][styleName]['minValue']
-        maxValue=cfg['styles']['customValues'][styleName]['maxValue']     
+def _generateValues(styles,minValue,maxValue,colorLength):
+    values=[]
+    nDigits=2 # Number of digits uses for rounding
+    values.append(round(minValue,nDigits))
+    for i in range(colorLength-2):
+        values.append(round(minValue+((maxValue-minValue)/colorLength)*(i+1),nDigits))
+    values.append(round(maxValue,nDigits))
+    return values
+
+def _createColorMapping(colors,values):
+    colorMapping=[]
+    for i in range(len(colors)):
+        colorMapping.append({"color":colors[i],"value":values[i]})
+    return colorMapping
+def createStyle(styleName,minValue,maxValue,layerMappingName,unit):
+
+    #Check if Style has own description in Config
+    if styleName in cfg['styles']['customStyles']:
+        colors=cfg['styles']['customStyles'][styleName]['colors']
+        #Check if Style has custom Values
+        if "values" in cfg['styles']['customStyles'][styleName]:
+            values=cfg['styles']['customStyles'][styleName]['values']
+        else:
+            values=_generateValues(styles,minValue,maxValue,len(colors))
+    #Use Default Styleconfig
+    else:
+        colors=cfg['styles']['DefaultColors']
+        values=_generateValues(styles,minValue,maxValue,len(colors))
+
     template = env.get_template('style.j2')
-    parsed_template=template.render(name=styleName,minValue=minValue,maxValue=maxValue,colorMin=min_color,colorMax=max_color)
+
+
+    #create StyleObject (used by Legend)
+    style={"name":styleName,"colors":colors,"values":values,"layerMappingName":layerMappingName,"unit":unit}
+    styles.append(style)
+
+    colorMapping=_createColorMapping(colors,values)
+    #create SLD Style which is used by Geoserver
+    parsed_template=template.render(styleName=styleName,colorMapping=colorMapping)
     with open(sys.path[0]+'/outputFiles/styles/'+styleName+'.xml', "w") as fh:
+        fh.write(parsed_template)
+
+
+
+def createLegend():
+    template = env.get_template('legend.j2')
+    parsed_template=template.render(styles=styles)
+    with open(frontendPath+'/src/js/legend.js', "w") as fh:
         fh.write(parsed_template)
     

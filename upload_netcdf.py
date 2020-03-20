@@ -70,7 +70,6 @@ print(r_create_layer.content)
 os.remove(output.filename)
 print(session.get('http://localhost:8080/geoserver/rest/workspaces/NetCDF/coveragestores/test/coverages/TSurf.json').content)
 
-
 #assign styles to created layers
 r_get_layers =session.get(geoserver_url+'/rest/workspaces/' + workspace  +'/layers')
 layers = r_get_layers.json()
@@ -82,16 +81,16 @@ for _l in layers:
     layer=cat.get_layer(_l['name'])
 
     #GetStyleName
-    if re.match(r".+_\d+_\d+",layer.name): #Checking for variable with multiple height levels
-        layer.default_style=re.sub(r"_\d+_\d+","",layer.name)
-    else: 
-        layer.default_style=layer.name
+    # if re.match(r".+_\d+_\d+",layer.name): #Checking for variable with multiple height levels
+    #     layer.default_style=re.sub(r"_\d+_\d+","",layer.name)
+    # else: 
+    layer.default_style=layer.name
 
     #check if Style exists
-    if not cat.get_style(layer.default_style):
-        #CreateStyle
-        f = open(sys.path[0]+'/outputFiles/styles/'+layer.default_style+'.xml')
-        cat.create_style(layer.default_style, f.read())
+    if cat.get_style(layer.default_style):
+        cat.delete(cat.get_style(layer.default_style))
+    f = open(sys.path[0]+'/outputFiles/styles/'+layer.default_style+'.xml')
+    cat.create_style(layer.default_style, f.read())
     cat.save(layer)
     #get coverage to activate time Dimension
     from geoserver.support import DimensionInfo

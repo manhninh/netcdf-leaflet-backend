@@ -17,7 +17,7 @@
 from netCDF4 import Dataset,Variable
 import numpy as np
 import sys, math, os
-import utils, makeMap, styles
+import utils, makeMap
 from pyproj import Transformer
 from affine import Affine
 
@@ -35,8 +35,7 @@ xUnits='m' # #degrees
 dimYName='y' # # rlat
 standardYName='projection_y_coordinate'#grid_latitude  #
 yUnits='m' # #degrees
-
-crs="mercator"#oblique_stereographic # mercator #rotated_latitude_longitude
+defined_grid_mapping=False
 
 #Creating Dimensions
 def createDimensions():
@@ -68,14 +67,18 @@ def createDimensions():
     x.units = xUnits
     #x._CoordinateAxisType = "GeoX"
 
-    resX,resY =utils.calculatePixelSize(locationLat,1,1)
-    # copy axis from original dataset
-    transformer=Transformer.from_crs(4326, epsg)
-    locationLongTransformed,locationLatTransformed = transformer.transform(locationLat,locationLong)
     time[:] = np.round(times[:],2) #converting hours to integer
-   
-    x[:] = longitudes[::-1]+locationLongTransformed #*resX+locationLong
-    y[:] = latitudes[:]+locationLatTransformed #*resY+locationLat
+
+    if not defined_grid_mapping:
+        resX,resY =utils.calculatePixelSize(locationLat,1,1)
+        # copy axis from original dataset
+        transformer=Transformer.from_crs(4326, epsg)
+        locationLongTransformed,locationLatTransformed = transformer.transform(locationLat,locationLong)
+        x[:] = longitudes[::-1]+locationLongTransformed #*resX+locationLong
+        y[:] = latitudes[:]+locationLatTransformed #*resY+locationLat
+    else:
+        x[:] = longitudes[::-1]#+locationLongTransformed #*resX+locationLong
+        y[:] = latitudes[:]#+locationLatTransformed #*resY+locationLat
 
 #creating vars specified in Config
 #height currently not implemented
@@ -90,10 +93,9 @@ def createVars():
         data={}
 
         if var_name in attributes:
-            vin_array=vin[:][:]
-            vin_min = vin_array.min()
-            vin_max = vin_array.max()
-            styles.createStyle(vin.name,vin_min,vin_max)
+            # vin_array=vin[:][:]
+            # vin_min = float(vin_array.min())
+            # vin_max = float(vin_array.max())
             var_name=var_name.replace('.','_') #
             if  len(vin.dimensions)==3:
                 makeMap.addOverlay(vin.name,vin.long_name,False)
@@ -104,7 +106,9 @@ def createVars():
                 data[var_name][:]=data[var_name][:,::-1]
                 data[var_name].setncattr('grid_mapping', crs)
 
-                makeMap.addLayer(l_name=vin.name,l_mappingName=vin.long_name)
+                vin_min = float(data[var_name][:][:].min())
+                vin_max = float(data[var_name][:][:].max())
+                makeMap.addLayer(l_name=vin.name,l_mappingName=vin.long_name,minValue=vin_min,maxValue=vin_max,unit=vin.units)
 
             elif len(vin.dimensions)==4:
                 makeMap.addOverlay(vin.name,vin.long_name,True)
@@ -120,10 +124,17 @@ def createVars():
                     data[var_height_name].setncattr('grid_mapping', crs)
                     
                     heightString=str(h)+' Meter'
-                    makeMap.addHeightLayer(var_height_name,heightString,vin.long_name)
+                    vin_min = float(data[var_height_name][:][:].min())
+                    vin_max = float(data[var_height_name][:][:].max())
+                    makeMap.addHeightLayer(var_height_name,heightString,vin.long_name,minValue=vin_min,maxValue=vin_max,unit=vin.units)
                     makeMap.addHeight(str(h).replace('.','_'),heightString)
-            
-def add_grid_mapping(crs):
+def add_defined_grid_mapping(crs):
+    vin=ncin.variables[crs]
+    data={}
+    data[crs] =ncout.createVariable(crs,"S1") 
+    data[crs] =add_attributes(vin,data[crs])
+    data[crs].spatial_ref='PROJCS["WGS 84 / UTM zone 33N", GEOGCS["WGS 84", DATUM["World Geodetic System 1984", SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]], AUTHORITY["EPSG","6326"]], PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]], UNIT["degree", 0.017453292519943295], AXIS["Geodetic longitude", EAST], AXIS["Geodetic latitude", NORTH], AUTHORITY["EPSG","4326"]], PROJECTION["Transverse_Mercator", AUTHORITY["EPSG","9807"]], PARAMETER["central_meridian", 15.0], PARAMETER["latitude_of_origin", 0.0], PARAMETER["scale_factor", 0.9996], PARAMETER["false_easting", 500000.0], PARAMETER["false_northing", 0.0], UNIT["m", 1.0], AXIS["Easting", EAST], AXIS["Northing", NORTH], AUTHORITY["EPSG","32633"]]'      
+def add_manual_grid_mapping(crs):
     data={}
     data[crs] =ncout.createVariable(crs,"S1")
     utils.addGridMappingVars(data[crs],crs)
@@ -176,9 +187,16 @@ if not os.path.isdir(sys.path[0]+'/outputFiles/'):
     os.mkdir(sys.path[0]+'/outputFiles/')
 ncout = Dataset(sys.path[0]+'/outputFiles/'+ projectname +'.nc', 'w', format='NETCDF4')
 
+if grid_mapping in ncin.variables:
+    crs=grid_mapping
+    add_defined_grid_mapping(crs)
+    defined_grid_mapping=True
+else:
+    crs="mercator"#oblique_stereographic # mercator #rotated_latitude_longitude
+    add_manual_grid_mapping(crs)
+
 createDimensions()
 createVars()
-add_grid_mapping(crs)
 #ncout = utils.add_proj(ncout,epsg)
 ncout.Conventions='CF-1.7'
 
@@ -186,7 +204,7 @@ ncout.Conventions='CF-1.7'
 ncin.close()
 ncout.close()
 
-makeMap.createOverlays()
+makeMap.finalizeMap()
 
 
 

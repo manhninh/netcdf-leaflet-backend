@@ -6,15 +6,15 @@
     xmlns:xlink="http://www.w3.org/1999/xlink" 
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <NamedLayer>
-    <Name>Two color gradient for {{name}}</Name>
+    <Name>Two color gradient for {{styleName}}</Name>
     <UserStyle>
       <Title>Two color gradient</Title>
       <FeatureTypeStyle>
         <Rule>
           <RasterSymbolizer>
             <ColorMap>
-              <ColorMapEntry color="{{colorMin}}" quantity="{{minValue}}" />
-              <ColorMapEntry color="{{colorMax}}" quantity="{{maxValue}}" />
+                {% for colorMapEntry in colorMapping %} <ColorMapEntry color="{{colorMapEntry.color}}" quantity="{{colorMapEntry.value}}" />
+                {% endfor %}
             </ColorMap>
           </RasterSymbolizer>
         </Rule>

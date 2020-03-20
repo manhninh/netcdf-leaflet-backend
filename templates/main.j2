@@ -1,9 +1,8 @@
 function initMap() {
 
     var map = L.map('map', {
-        zoom: 12,
         minZoom: 12,
-        maxZoom: 20,
+        maxZoom: 18,
         
         timeDimension: true,
         timeDimensionOptions: {
@@ -14,7 +13,7 @@ function initMap() {
 
     });
     L.control.scale().addTo(map)
-    map.setView(['{{ Latitude }}', '{{ Longitude }}'], 1)
+    map.setView(['{{ Latitude }}', '{{ Longitude }}'], 15)
 
     var baseLayers = getCommonBaseLayers(map); //from baselayers js
     var BasicControl =L.control.groupedLayers(baseLayers, groupedOverlays,controlOptions).addTo(map);
@@ -32,6 +31,7 @@ function initMap() {
             activeHeight=eventLayer.name;   
         } 
         else{ //preparing Height Variable
+            removeLegend(); //remove basic legend
             activeHeightLayer=eventLayer.name;
             HeightControl.addTo(map);
         }         
