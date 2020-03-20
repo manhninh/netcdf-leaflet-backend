@@ -4,9 +4,9 @@ Backend for Displaying NetCDF Data in Leaflet
 ## Current Features:
 - displaying Heightlevels dynamically
 - custom styling:
-    Define Default ColorPalette
-    Define Custom ColorPalette for each Climate Element
-    Define Custom Min Max Value used for Styling (lower contrast,comparison with other projects
+    - Define Default ColorPalette
+    - Define Custom ColorPalette for each Climate Element
+    - Define Custom Min Max Value used for Styling (lower contrast,comparison with other projects
 
 ## Working Steps
 ### Prepare Custom NetCDF
