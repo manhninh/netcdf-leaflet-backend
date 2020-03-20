@@ -1,0 +1,37 @@
+
+{% for layer in layers %}
+    var {{ layer.name }}Legend = { 
+        "colors": [{% for color in layer.colors %} "{{ color }}",{% endfor %}],
+        "values": [{% for value in layer.values %} "{{ value }}",{% endfor %}],
+    };
+{% endfor %}
+
+let legendMapping = new Map();
+{% for layer in layers %} legendMapping.set('{{layer.mappingName}}',{{layer.name}}Legend);
+{% endfor %}
+
+var legend = L.control({position: 'bottomright'});
+
+var legendName=null
+
+function addLegend (map,legendName){
+this.legendName=legendName;
+legend.addTo(map);
+};
+
+legend.onAdd = function (map) {
+    legendObject=legendMapping.get(legendName)
+
+    var div = L.DomUtil.create('div', 'info legend'),
+        grades = legendObject.values,
+        colors = legendObject.colors;
+
+    // loop through our density intervals and generate a label with a colored square for each interval
+    div.innerHTML='<h4>'+legendName+'</h4>'
+    for (var i = 0; i < grades.length; i++) {
+        div.innerHTML +=
+            '<i style="background:' + colors[i] + '"></i> ' + grades[i] +' '+legendObject.unit+'<br></br>' ;
+    }
+
+    return div;
+};

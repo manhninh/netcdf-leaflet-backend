@@ -70,6 +70,7 @@ print(r_create_layer.content)
 os.remove(output.filename)
 print(session.get('http://localhost:8080/geoserver/rest/workspaces/NetCDF/coveragestores/test/coverages/TSurf.json').content)
 
+
 #assign styles to created layers
 r_get_layers =session.get(geoserver_url+'/rest/workspaces/' + workspace  +'/layers')
 layers = r_get_layers.json()
@@ -79,12 +80,18 @@ layers = layers['layers']['layer']
 # elevationParameter={ "enabled": "false"}
 for _l in layers:
     layer=cat.get_layer(_l['name'])
-    #session.post(geoserver_url+'/rest/workspaces/' + workspace  + '/coveragestores/' + coveragestore +'/coverages', data='<coverage><name>'+str(layer)+'</name><title>'+str(layer)+'</title><nativeCRS>GEOGCS["ETRS89",DATUM["European_Terrestrial_Reference_System_1989",SPHEROID["GRS 1980",6378137,298.257222101,AUTHORITY["EPSG","7019"]],AUTHORITY["EPSG","6258"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.01745329251994328,AUTHORITY["EPSG","9122"]],AUTHORITY["EPSG","4258"]],UNIT["metre",1,AUTHORITY["EPSG","9001"]],PROJECTION["Transverse_Mercator"],PARAMETER["latitude_of_origin",0],PARAMETER["central_meridian",-3],PARAMETER["scale_factor",0.9996],PARAMETER["false_easting",500000],PARAMETER["false_northing",0],AUTHORITY["EPSG","3042"],AXIS["Easting",EAST],AXIS["Northing",NORTH]]</nativeCRS><srs>EPSG:3857</srs><projectionPolicy>REPROJECT_TO_DECLARED</projectionPolicy><dimensions><coverageDimension><name>GRAY_INDEX</name><description>GridSampleDimension[-Infinity,Infinity]</description><range><min>-inf</min><max>inf</max></range><nullValues><double>255.0</double></nullValues><dimensionType><name>UNSIGNED_8BITS</name></dimensionType></coverageDimension></dimensions></coverage>',headers=headers_xml)
 
+    #GetStyleName
     if re.match(r".+_\d+_\d+",layer.name): #Checking for variable with multiple height levels
         layer.default_style=re.sub(r"_\d+_\d+","",layer.name)
     else: 
         layer.default_style=layer.name
+
+    #check if Style exists
+    if not cat.get_style(layer.default_style):
+        #CreateStyle
+        f = open(sys.path[0]+'/outputFiles/styles/'+layer.default_style+'.xml')
+        cat.create_style(layer.default_style, f.read())
     cat.save(layer)
     #get coverage to activate time Dimension
     from geoserver.support import DimensionInfo

@@ -22,11 +22,13 @@ function initMap() {
     map.on('overlayadd', function(eventLayer) {
         if (layerMapping.has(eventLayer.name)){
             layerMapping.get(eventLayer.name).addTo(map);
+            addLegend(map,legendName=eventLayer.name);
             map.removeLayer(HeightControl);//Not a heightLayer - therefore disabling Heightcontrol
             HeightControl.remove(); 
         }
         else if(layerMapping.has(activeHeightLayer+'-'+eventLayer.name)){ //Height Layers
             layerMapping.get(activeHeightLayer+'-'+eventLayer.name).addTo(map);
+            addLegend(map,activeHeightLayer+'-'+eventLayer.name);
             activeHeight=eventLayer.name;   
         } 
         else{ //preparing Height Variable
