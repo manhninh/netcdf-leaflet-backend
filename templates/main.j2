@@ -13,6 +13,7 @@ function initMap() {
 
     });
     L.control.scale().addTo(map)
+    map.timeDimension.setCurrentTime(0);
     map.setView(['{{ Latitude }}', '{{ Longitude }}'], 15)
 
     var baseLayers = getCommonBaseLayers(map); //from baselayers js
