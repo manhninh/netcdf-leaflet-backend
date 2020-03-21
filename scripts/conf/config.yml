@@ -5,6 +5,7 @@ general:
         - Albedo
         - WindSpd
         - T
+        - LatentHeatFlux
     project_name: test #rotated-pole #test 
     height_levels: [0.3,10.5,40.5]
     grid_mapping: "transverse_mercator"  # albers_conical_equal_area
@@ -13,7 +14,7 @@ geoserver:
     url: http://localhost:8080/geoserver
     workspaceName: NetCDF
 frontend:
-    absolutePath: /Users/eliasborngaesser/src/github.com/eliasborngaesser/netcdf-leaflet/app
+    absolutePath: /Users/eliasborngaesser/src/github.com/eliasborngaesser/netcdf-leaflet-container/frontend/app
 styles: #To be defined in Hex Color Code
     DefaultColors: ["#0571b0","#92c5de","#f7f7f7","#f4a582","#ca0020"]
     customStyles:

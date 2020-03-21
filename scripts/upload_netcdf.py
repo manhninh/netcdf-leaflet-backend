@@ -32,14 +32,14 @@ workspace=cfg['geoserver']['workspaceName']
 geoserver_url=cfg['geoserver']['url']
 
 #Check if Config File is correct and NETCDF File existing
-if not os.path.exists(sys.path[0]+'/outputFiles/'+projectname+'.nc'):
-    logging.error('File '+sys.path[0]+'/outputFiles/'+projectname+'.nc does not exist')
+if not os.path.exists(sys.path[0]+'/../outputFiles/'+projectname+'.nc'):
+    logging.error('File '+sys.path[0]+'/../outputFiles/'+projectname+'.nc does not exist')
     exit
     
 coveragestore=projectname
 headers_zip = {'content-type': 'application/zip'}
 headers_xml = {'content-type': 'text/xml'}
-netcdfFile=sys.path[0]+'/outputFiles/'+projectname+'.nc'
+netcdfFile=sys.path[0]+'/../outputFiles/'+projectname+'.nc'
 
 #prepare Session
 session = requests.Session()
@@ -56,7 +56,7 @@ r_create_coveragestore = session.post(geoserver_url+'/rest/workspaces/'+ workspa
 print(r_create_coveragestore.content)
 
 # zip the nc file into a zip
-zfile = sys.path[0]+'/outputFiles/data.zip'
+zfile = sys.path[0]+'/../outputFiles/data.zip'
 output = zipfile.ZipFile(zfile, 'w')
 output.write(netcdfFile, coveragestore + '.nc', zipfile.ZIP_DEFLATED )
 output.close()
@@ -75,21 +75,16 @@ r_get_layers =session.get(geoserver_url+'/rest/workspaces/' + workspace  +'/laye
 layers = r_get_layers.json()
 layers = layers['layers']['layer']
 
-# timeParameter={ "enabled": "true","presentation": "LIST", "units": "ISO8601", "defaultValue": None, "nearestMatchEnabled": "false" }
-# elevationParameter={ "enabled": "false"}
 for _l in layers:
     layer=cat.get_layer(_l['name'])
 
     #GetStyleName
-    # if re.match(r".+_\d+_\d+",layer.name): #Checking for variable with multiple height levels
-    #     layer.default_style=re.sub(r"_\d+_\d+","",layer.name)
-    # else: 
     layer.default_style=layer.name
 
     #check if Style exists
     if cat.get_style(layer.default_style):
         cat.delete(cat.get_style(layer.default_style))
-    f = open(sys.path[0]+'/outputFiles/styles/'+layer.default_style+'.xml')
+    f = open(sys.path[0]+'/../outputFiles/styles/'+layer.default_style+'.xml')
     cat.create_style(layer.default_style, f.read())
     cat.save(layer)
     #get coverage to activate time Dimension
@@ -98,4 +93,5 @@ for _l in layers:
     timeInfo = DimensionInfo("time", "true", "LIST", None, "ISO8601", None)
     coverage.metadata = ({'time': timeInfo})
     cat.save(coverage)
+print('App can be started with: '+cfg['frontend']['absolutePath']+'/index.html')
   

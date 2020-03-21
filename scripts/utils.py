@@ -25,7 +25,7 @@ def calculatePixelSize(latitude,pixelWidth,pixelHeight): #calculate Resolution i
 
 def readConf():
     import yaml
-    with open(os.path.join(sys.path[0], "conf/config.yml"), 'r') as ymlfile:
+    with open(sys.path[0] + "/conf/config.yml", 'r') as ymlfile:
 	    cfg = yaml.safe_load(ymlfile)
 	    return cfg
 

@@ -3,7 +3,7 @@ import sys,utils,styles
 import logging
 
 env = Environment(
-    loader=PackageLoader('makeMap', 'templates'),
+    loader=PackageLoader('makeMap', '../templates'),
     autoescape=select_autoescape(['html', 'js'])
 )
 overlays=[]

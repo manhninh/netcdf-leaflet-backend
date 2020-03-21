@@ -5,7 +5,7 @@ cfg=utils.readConf()
 frontendPath=cfg['frontend']['absolutePath']
 
 env = Environment(
-    loader=PackageLoader('styles', 'templates'),
+    loader=PackageLoader('styles', '../templates'),
     autoescape=select_autoescape(['html', 'xml'])
 )
 styles=[]
@@ -50,7 +50,7 @@ def createStyle(styleName,minValue,maxValue,layerMappingName,unit):
     colorMapping=_createColorMapping(colors,values)
     #create SLD Style which is used by Geoserver
     parsed_template=template.render(styleName=styleName,colorMapping=colorMapping)
-    with open(sys.path[0]+'/outputFiles/styles/'+styleName+'.xml', "w") as fh:
+    with open(sys.path[0]+'/../outputFiles/styles/'+styleName+'.xml', "w") as fh:
         fh.write(parsed_template)
 
 

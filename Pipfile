@@ -15,13 +15,6 @@ pyyaml = "*"
 requests = "*"
 geoserver-restconfig = "*"
 pyproj ="*"
-
-coloredlogs ="*"
-spatialnc="*"
-
-scipy="*"
-matplotlib="*"
-
 affine="*"
 
 jinja2="*"

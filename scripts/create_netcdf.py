@@ -156,7 +156,7 @@ grid_mapping=cfg['general']['grid_mapping']
 inputFile=cfg['general']['inputFile']
 
 # open a netCDF file to read
-filename = sys.path[0]+"/inputFiles/"+inputFile
+filename = sys.path[0]+"/../inputFiles/"+inputFile
 ncin = Dataset(filename, 'r', format='NETCDF4')
 
 #global attributes
@@ -183,9 +183,9 @@ ntime = len(times)
 makeMap.createMap('-'.join([year,month,day]),timeString,ntime-1,int(times[1]*60),locationLat,locationLong)
 
 # open netCDF file to write
-if not os.path.isdir(sys.path[0]+'/outputFiles/'):
-    os.mkdir(sys.path[0]+'/outputFiles/')
-ncout = Dataset(sys.path[0]+'/outputFiles/'+ projectname +'.nc', 'w', format='NETCDF4')
+if not os.path.isdir(sys.path[0]+'/../outputFiles/'):
+    os.mkdir(sys.path[0]+'/../outputFiles/')
+ncout = Dataset(sys.path[0]+'/../outputFiles/'+ projectname +'.nc', 'w', format='NETCDF4')
 
 if grid_mapping in ncin.variables:
     crs=grid_mapping

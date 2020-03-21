@@ -1,2 +1,2 @@
-python create_netcdf.py   
-python upload_netcdf.py   
+python scripts/create_netcdf.py   
+python scripts/upload_netcdf.py   
