@@ -10,12 +10,13 @@ env = Environment(
 )
 styles=[]
 
-def _generateValues(styles,minValue,maxValue,colorLength):
+def _generateValues(styles,minValue,maxValue,nClasses):
     values=[]
     nDigits=2 # Number of digits uses for rounding
     values.append(round(minValue,nDigits))
-    for i in range(colorLength-2):
-        values.append(round(minValue+((maxValue-minValue)/colorLength)*(i+1),nDigits))
+    classStep=((maxValue-minValue)/(nClasses-1))
+    for i in range(nClasses-2):
+        values.append(round(minValue+classStep*(i+1),nDigits))
     values.append(round(maxValue,nDigits))
     return values
 

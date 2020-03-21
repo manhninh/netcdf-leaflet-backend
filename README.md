@@ -20,6 +20,7 @@ Backend for Displaying NetCDF Data in Leaflet
 
 ### Geoserver
 - creation of custom SLD Styles with custom Min Max Values and Colors
+    -Default: https://colorbrewer2.org/#type=diverging&scheme=RdBu&n=5
 - workspace Creation
 - uploading NetCDF Data
 - layer Creation
