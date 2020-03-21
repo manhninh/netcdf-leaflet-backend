@@ -5,13 +5,6 @@
 #
 # category: python script
 #
-# description:
-# Part 2 
-#   Publishing netcdf on geoserver with layers.
-#
-# reference:
-#   http://unidata.github.io/netcdf4-python/
-#
 # author: Elias Borngässer
 #=======================================================================
 
@@ -23,13 +16,15 @@ import sys,os
 import json,re
 import logging
 from geoserver.catalog import Catalog
-cat=Catalog("http://localhost:8080/geoserver/rest/", "admin", "geoserver")
+
 
 #get config variables
 cfg=utils.readConf()
 projectname=cfg['general']['project_name']
 workspace=cfg['geoserver']['workspaceName']
 geoserver_url=cfg['geoserver']['url']
+
+cat=Catalog(geoserver_url+ "/rest/", "admin", "geoserver")
 
 #Check if Config File is correct and NETCDF File existing
 if not os.path.exists(sys.path[0]+'/../outputFiles/'+projectname+'.nc'):
@@ -45,10 +40,14 @@ netcdfFile=sys.path[0]+'/../outputFiles/'+projectname+'.nc'
 session = requests.Session()
 session.auth = ('admin', 'geoserver')
 session.headers.update({'content-type': 'application/json'})#default is json
-
-#delete coveragestore with same Name
-r_delete_coveragestore = session.delete(geoserver_url+'/rest/workspaces/'+ workspace  + '/coveragestores/'+coveragestore+'/?recurse=true&purge=all')
-print(r_delete_coveragestore.content)
+#create Workspace if doesn't exist
+if  not cat.get_workspace(workspace):
+    cat.create_workspace(workspace,workspace)
+#delete coveragestore with same Name if existing
+if cat.get_store(coveragestore,workspace):
+    cat.delete(cat.get_store(coveragestore,workspace),purge="all",recurse=True)
+# r_delete_coveragestore = session.delete(geoserver_url+'/rest/workspaces/'+ workspace  + '/coveragestores/'+coveragestore+'/?recurse=true&purge=all')
+# print(r_delete_coveragestore.content)
 
 #create New Coveragestore
 r_create_coveragestore = session.post(geoserver_url+'/rest/workspaces/'+ workspace  + '/coveragestores?configure=all',
@@ -68,18 +67,17 @@ with open(output.filename, 'rb') as zip_file:
         headers=headers_zip)
 print(r_create_layer.content)
 os.remove(output.filename)
-print(session.get('http://localhost:8080/geoserver/rest/workspaces/NetCDF/coveragestores/test/coverages/TSurf.json').content)
 
 #assign styles to created layers
-r_get_layers =session.get(geoserver_url+'/rest/workspaces/' + workspace  +'/layers')
-layers = r_get_layers.json()
-layers = layers['layers']['layer']
+layers= cat.get_layers()
+# r_get_layers =session.get(geoserver_url+'/rest/workspaces/' + workspace  +'/layers')
+# layers = r_get_layers.json()
+# layers = layers['layers']['layer']
 
-for _l in layers:
-    layer=cat.get_layer(_l['name'])
-
+for layer in layers:
+    layerName=layer.resource.name
     #GetStyleName
-    layer.default_style=layer.name
+    layer.default_style=layerName
 
     #check if Style exists
     if cat.get_style(layer.default_style):
@@ -89,7 +87,7 @@ for _l in layers:
     cat.save(layer)
     #get coverage to activate time Dimension
     from geoserver.support import DimensionInfo
-    coverage = cat.get_resource(layer.name,"test",workspace="NetCDF")
+    coverage = cat.get_resource(layerName,projectname,workspace=workspace)
     timeInfo = DimensionInfo("time", "true", "LIST", None, "ISO8601", None)
     coverage.metadata = ({'time': timeInfo})
     cat.save(coverage)
