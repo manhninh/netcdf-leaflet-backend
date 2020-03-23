@@ -1,5 +1,5 @@
 from jinja2 import Environment, PackageLoader, select_autoescape
-import sys,utils
+import sys,utils,logging
 
 cfg=utils.readConf()
 frontendPath=cfg['frontend']['absolutePath']
@@ -60,4 +60,6 @@ def createLegend():
     parsed_template=template.render(styles=styles)
     with open(frontendPath+'/src/js/legend.js', "w") as fh:
         fh.write(parsed_template)
+    path =frontendPath+"/src/js/legend.js"
+    logging.info("JavascriptFile has been created: "+path)
     
