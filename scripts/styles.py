@@ -3,6 +3,7 @@ import sys,utils,logging
 
 cfg=utils.readConf()
 frontendPath=cfg['frontend']['absolutePath']
+projectName=cfg['general']['project_name']
 
 env = Environment(
     loader=PackageLoader('styles', '../templates'),
@@ -58,8 +59,8 @@ def createStyle(styleName,minValue,maxValue,layerMappingName,unit):
 def createLegend():
     template = env.get_template('legend.j2')
     parsed_template=template.render(styles=styles)
-    with open(frontendPath+'/src/js/legend.js', "w") as fh:
+    path =frontendPath+"/projects/"+projectName+"/legend.js"
+    with open(path, "w") as fh:
         fh.write(parsed_template)
-    path =frontendPath+"/src/js/legend.js"
     logging.info("JavascriptFile has been created: "+path)
     

@@ -1,10 +1,13 @@
 from jinja2 import Environment, PackageLoader, select_autoescape
-import sys,utils,styles
+import sys,os
+from shutil import copy
+import pathlib
+import utils,styles
 import logging
 
 env = Environment(
     loader=PackageLoader('makeMap', '../templates'),
-    autoescape=select_autoescape(['html', 'js'])
+    autoescape=select_autoescape(['html', 'js','xml'])
 )
 overlays=[]
 heights=[]
@@ -13,12 +16,16 @@ layers=[]
 cfg=utils.readConf()
 geoserverURL=cfg['geoserver']['url']
 frontendPath=cfg['frontend']['absolutePath']
-workspaceName=cfg['geoserver']['workspaceName']
+projectName=cfg['general']['project_name']
+workspaceName=projectName
 
 def createMap(SimDate,SimTime,SimDurationMinus1,TimeInterval,Latitude,Longitude):
-    template = env.get_template('main.j2')
+    #Create ProjectFolder
+    if not os.path.isdir(frontendPath+'/projects/'+projectName+'/'):
+        pathlib.Path(frontendPath+'/projects/'+projectName+'/').mkdir(parents=True,exist_ok=True)
+    template = env.get_template('utils.j2')
     parsed_template=template.render(SimDate=SimDate,SimTime=SimTime,SimDurationMinus1=SimDurationMinus1,TimeInterval=TimeInterval,Latitude=Latitude,Longitude=Longitude)
-    path =frontendPath+"/src/js/main.js"
+    path =frontendPath+'/projects/'+projectName+"/utils.js"
     with open(path, "w") as fh:
         fh.write(parsed_template)
     logging.info("JavascriptFile has been created: "+path)
@@ -45,7 +52,17 @@ def _createLegend():
 def _createOverlays():
     template = env.get_template('overlays.j2')
     parsed_template=template.render(heights=heights,overlays=overlays,layers=layers,url=geoserverURL,workspaceName=workspaceName)
-    path=frontendPath+'/src/js/overlays.js'
+    path=frontendPath+'/projects/'+projectName+'/overlays.js'
+    with open(path, "w") as fh:
+        fh.write(parsed_template)
+    logging.info("JavascriptFile has been created: "+path)
+def _createProjectHandling():
+    template = env.get_template('projectHandling.j2')
+    projects=[]
+    for _r, d, _f in os.walk(frontendPath+'/projects/'):
+        projects+=d
+    parsed_template=template.render(projects=projects)
+    path=frontendPath+'/projects/projectHandling.js'
     with open(path, "w") as fh:
         fh.write(parsed_template)
     logging.info("JavascriptFile has been created: "+path)
@@ -53,5 +70,8 @@ def _createOverlays():
 def finalizeMap():
     _createOverlays()
     _createLegend()
+    _createProjectHandling()
+    copy(frontendPath+'/src/index.html',frontendPath+'/projects/'+projectName+'/')
+
 
     

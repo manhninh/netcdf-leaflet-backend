@@ -1,2 +1,6 @@
-python scripts/create_netcdf.py   
+python scripts/create_netcdf.py
+ret=$?
+if [ $ret -ne 0 ]; then
+     exit
+fi  
 python scripts/upload_netcdf.py   

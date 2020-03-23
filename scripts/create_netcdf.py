@@ -70,15 +70,13 @@ def createDimensions():
     #x._CoordinateAxisType = "GeoX"
 
 
-    if not defined_grid_mapping:
-        #resX,resY =utils.calculatePixelSize(locationLat,1,1)
-        # copy axis from original dataset
-        transformer=Transformer.from_crs(sourceEPSG, targetEPSG)
+    if not defined_grid_mapping and 'targetEPSG' in cfg['general']:
+        transformer=Transformer.from_crs(sourceEPSG, cfg['general']['targetEPSG'])
         locationLongTransformed,locationLatTransformed = transformer.transform(locationLat,locationLong)
         x[:] = longitudes[::-1]+locationLongTransformed #*resX+locationLong
         y[:] = latitudes[:]+locationLatTransformed #*resY+locationLat
     else:
-        x[:] = longitudes[::-1]#+locationLongTransformed #*resX+locationLong
+        x[:] = longitudes[:]#+locationLongTransformed #*resX+locationLong
         y[:] = latitudes[:]#+locationLatTransformed #*resY+locationLat
 
 #creating vars specified in Config
@@ -129,14 +127,11 @@ def createVars():
                     vin_max = float(data[var_height_name][:][:].max())
                     makeMap.addHeightLayer(var_height_name,heightString,vin.long_name,minValue=vin_min,maxValue=vin_max,unit=vin.units)
                     makeMap.addHeight(str(h).replace('.',''),heightString)
-#FIX: WKT Data currently not included in NetCDF and also not loaded dynamically
 def add_defined_grid_mapping(crs):
     vin=ncin.variables[crs]
     data={}
     data[crs] =ncout.createVariable(crs,"S1") 
     data[crs] =add_attributes(vin,data[crs])
-    # This is just an example for a needed WKT
-    data[crs].spatial_ref='PROJCS["WGS 84 / UTM zone 33N", GEOGCS["WGS 84", DATUM["World Geodetic System 1984", SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]], AUTHORITY["EPSG","6326"]], PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]], UNIT["degree", 0.017453292519943295], AXIS["Geodetic longitude", EAST], AXIS["Geodetic latitude", NORTH], AUTHORITY["EPSG","4326"]], PROJECTION["Transverse_Mercator", AUTHORITY["EPSG","9807"]], PARAMETER["central_meridian", 15.0], PARAMETER["latitude_of_origin", 0.0], PARAMETER["scale_factor", 0.9996], PARAMETER["false_easting", 500000.0], PARAMETER["false_northing", 0.0], UNIT["m", 1.0], AXIS["Easting", EAST], AXIS["Northing", NORTH], AUTHORITY["EPSG","32633"]]'      
 def add_manual_grid_mapping(crs):
     data={}
     data[crs] =ncout.createVariable(crs,"S1")
@@ -153,7 +148,6 @@ def add_global_attrs():
 cfg=utils.readConf()
 attributes=cfg['general']['attributes_to_read']
 sourceEPSG=cfg['general']['sourceEPSG']
-targetEPSG=cfg['general']['targetEPSG']
 projectname=cfg['general']['project_name']
 heightlevels=cfg['general']['height_levels']
 grid_mapping=cfg['general']['grid_mapping']
