@@ -61,12 +61,7 @@ def addGridMappingVars(var,grid_mapping):
 	    var.scale_factor= 1.0
 	    var.false_easting= 0.0
 	    var.false_northing= 0.0
-    elif grid_mapping=="Mercator_1SP":
-	    var.grid_mapping_name = grid_mapping
-	    var.central_meridian= 0.0
-	    var.scale_factor= 1.0
-	    var.false_easting= 0.0
-	    var.false_northing= 0.0
+
     elif grid_mapping=="mercator":
         var.grid_mapping_name= grid_mapping
         #affine=Affine.rotation(58.0)
