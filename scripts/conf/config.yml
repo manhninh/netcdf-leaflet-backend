@@ -1,5 +1,7 @@
 general:
-    EPSG: 900913 #900913 #25832 #900913 # # #3857
+    log_level: INFO
+    sourceEPSG: 4326 #900913 #25832 #900913 # # #3857
+    targetEPSG: 900913
     attributes_to_read:
         - TSurf
         - Albedo
@@ -14,7 +16,7 @@ geoserver:
     url: http://localhost:8080/geoserver
     workspaceName: NetCDF
 frontend:
-    absolutePath: /Users/eliasborngaesser/src/github.com/eliasborngaesser/netcdf-leaflet-container/frontend/app
+    absolutePath: /Users/eliasborngaesser/src/github.com/eliasborngaesser/frontend/app
 styles: #To be defined in Hex Color Code
     DefaultColors: ["#0571b0","#92c5de","#f7f7f7","#f4a582","#ca0020"]
     customStyles:
