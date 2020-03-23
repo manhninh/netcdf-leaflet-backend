@@ -1,0 +1,8 @@
+function get_timeDimensionOptions(){
+    return {
+        timeInterval: "{{ SimDate }}T{{ SimTime }}Z/PT{{ SimDurationMinus1 }}H",
+        period: 'PT{{ TimeInterval }}M'}
+};
+function get_Location(){
+    return ['{{ Latitude }}', '{{ Longitude }}']
+};
