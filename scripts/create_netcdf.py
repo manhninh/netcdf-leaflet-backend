@@ -16,7 +16,7 @@
 
 from netCDF4 import Dataset,Variable
 import numpy as np
-import sys, math, os
+import sys, math, os,logging
 import utils, makeMap
 from pyproj import Transformer
 from affine import Affine
@@ -53,6 +53,8 @@ def createDimensions():
     time.calendar = 'standard'
     time.axis = 'T'
 
+    time[:] = np.round(times[:],2) #converting hours to integer
+
     # create latitude axis
     y = ncout.createVariable(dimYName, np.dtype('double').char, (dimYName))
     y.standard_name = standardYName
@@ -67,12 +69,11 @@ def createDimensions():
     x.units = xUnits
     #x._CoordinateAxisType = "GeoX"
 
-    time[:] = np.round(times[:],2) #converting hours to integer
 
     if not defined_grid_mapping:
-        resX,resY =utils.calculatePixelSize(locationLat,1,1)
+        #resX,resY =utils.calculatePixelSize(locationLat,1,1)
         # copy axis from original dataset
-        transformer=Transformer.from_crs(4326, epsg)
+        transformer=Transformer.from_crs(sourceEPSG, targetEPSG)
         locationLongTransformed,locationLatTransformed = transformer.transform(locationLat,locationLong)
         x[:] = longitudes[::-1]+locationLongTransformed #*resX+locationLong
         y[:] = latitudes[:]+locationLatTransformed #*resY+locationLat
@@ -113,7 +114,7 @@ def createVars():
             elif len(vin.dimensions)==4:
                 makeMap.addOverlay(vin.name,vin.long_name,True)
                 for h in heightlevels:
-                    var_height_name=var_name+'_'+str(h).replace('.','_')# adding height value to var name
+                    var_height_name=var_name+str(h).replace('.','')# adding height value to var name
                     fill_val=vin._FillValue if hasattr(vin, '_FillValue') else 999
                     data[var_height_name] =ncout.createVariable(var_height_name,np.dtype('double').char,('time',dimYName,dimXName,),fill_value=fill_val)
                     data[var_height_name] =add_attributes(vin,data[var_height_name])
@@ -127,12 +128,14 @@ def createVars():
                     vin_min = float(data[var_height_name][:][:].min())
                     vin_max = float(data[var_height_name][:][:].max())
                     makeMap.addHeightLayer(var_height_name,heightString,vin.long_name,minValue=vin_min,maxValue=vin_max,unit=vin.units)
-                    makeMap.addHeight(str(h).replace('.','_'),heightString)
+                    makeMap.addHeight(str(h).replace('.',''),heightString)
+#FIX: WKT Data currently not included in NetCDF and also not loaded dynamically
 def add_defined_grid_mapping(crs):
     vin=ncin.variables[crs]
     data={}
     data[crs] =ncout.createVariable(crs,"S1") 
     data[crs] =add_attributes(vin,data[crs])
+    # This is just an example for a needed WKT
     data[crs].spatial_ref='PROJCS["WGS 84 / UTM zone 33N", GEOGCS["WGS 84", DATUM["World Geodetic System 1984", SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]], AUTHORITY["EPSG","6326"]], PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]], UNIT["degree", 0.017453292519943295], AXIS["Geodetic longitude", EAST], AXIS["Geodetic latitude", NORTH], AUTHORITY["EPSG","4326"]], PROJECTION["Transverse_Mercator", AUTHORITY["EPSG","9807"]], PARAMETER["central_meridian", 15.0], PARAMETER["latitude_of_origin", 0.0], PARAMETER["scale_factor", 0.9996], PARAMETER["false_easting", 500000.0], PARAMETER["false_northing", 0.0], UNIT["m", 1.0], AXIS["Easting", EAST], AXIS["Northing", NORTH], AUTHORITY["EPSG","32633"]]'      
 def add_manual_grid_mapping(crs):
     data={}
@@ -149,14 +152,23 @@ def add_global_attrs():
 #get config variables
 cfg=utils.readConf()
 attributes=cfg['general']['attributes_to_read']
-epsg=cfg['general']['EPSG']
+sourceEPSG=cfg['general']['sourceEPSG']
+targetEPSG=cfg['general']['targetEPSG']
 projectname=cfg['general']['project_name']
 heightlevels=cfg['general']['height_levels']
 grid_mapping=cfg['general']['grid_mapping']
 inputFile=cfg['general']['inputFile']
+logging.getLogger().setLevel(cfg['general']['log_level'])
+
+filePaths=[sys.path[0]+'/../inputFiles/'+inputFile,cfg['frontend']['absolutePath']]
+#Check if Config File is correct and Paths are existing
+for path in filePaths:
+    if not os.path.exists(path):
+        logging.error('Path: '+path+' does not exist')
+        exit
 
 # open a netCDF file to read
-filename = sys.path[0]+"/../inputFiles/"+inputFile
+filename = filePaths[0]
 ncin = Dataset(filename, 'r', format='NETCDF4')
 
 #global attributes
