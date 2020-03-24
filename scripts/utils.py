@@ -12,15 +12,34 @@
 #=======================================================================
 
 
-import math,yaml,os,sys
+import math,yaml,os,sys,shutil
 from urllib.request import urlopen
 from affine import Affine
+from geoserver.catalog import Catalog
+
 
 def readConf():
     import yaml
     with open(sys.path[0] + "/conf/config.yml", 'r') as ymlfile:
 	    cfg = yaml.safe_load(ymlfile)
 	    return cfg
+
+cfg=readConf()
+geoserverURL=cfg['geoserver']['url']
+frontendPath=cfg['frontend']['absolutePath']
+
+def cleanupProjects(ignore):
+    cat=Catalog(geoserverURL+ "/rest/", "admin", "geoserver")
+    workspaces=cat.get_workspaces()
+    projects=[]
+    for _r, dirs, _f in os.walk(frontendPath+'/projects/'):
+        for d in dirs:
+            if d not in workspaces and d not in ignore:
+                shutil.rmtree(frontendPath+'/projects/'+d)
+            else:
+                projects.append(d)
+    return projects
+
 
 def addGridMappingVars(var,grid_mapping,locationLat,locationLon,rotation):
     if grid_mapping=='transverse_mercator':

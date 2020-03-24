@@ -58,9 +58,8 @@ def _createOverlays():
     logging.info("JavascriptFile has been created: "+path)
 def _createProjectHandling():
     template = env.get_template('projectHandling.j2')
-    projects=[]
-    for _r, d, _f in os.walk(frontendPath+'/projects/'):
-        projects+=d
+    #Delete Unused Static Files and getting List of available projects
+    projects=utils.cleanupProjects([projectName])
     parsed_template=template.render(projects=projects)
     path=frontendPath+'/projects/projectHandling.js'
     with open(path, "w") as fh:
