@@ -58,20 +58,23 @@ r_set_wms_options=session.put(geoserver_url+'/rest/services/wms/settings',
     data='<wms><metadata><entry key="advancedProjectionHandling">false</entry></metadata></wms>',
     headers=headers_xml)
 
-#create Workspace if doesn't exist
-if  not cat.get_workspace(workspace):
-    cat.create_workspace(workspace,geoserver_url+'/'+workspace)
-#delete coveragestore with same Name if existing
-if cat.get_store(projectname,workspace=workspace):
-    cat.delete(cat.get_store(projectname,workspace),purge="all",recurse=True)
+# Delete old workspace and create new one
+if cat.get_store(projectname,workspace):
+    cat.delete(cat.get_store(projectname,workspace=workspace),purge="all",recurse=True)
+if cat.get_workspace(workspace):
+    cat.delete(cat.get_workspace(workspace),purge="all",recurse=True)
+cat.create_workspace(workspace,geoserver_url+'/'+workspace)
+
 
 # zip the ncFile
 zfile = sys.path[0]+'/../outputFiles/data.zip'
+logging.info('Writing Zipfile '+zfile)
 output = zipfile.ZipFile(zfile, 'w')
 output.write(netcdfFile, projectname + '.nc', zipfile.ZIP_DEFLATED )
 output.close()
 
 #upload zip file (creating coveragestore and layers automatically)
+logging.info('Uploading '+zfile)
 with open(output.filename, 'rb') as zip_file:
     r_create_layer = session.put(geoserver_url+'/rest/workspaces/' + workspace  + '/coveragestores/' + projectname  + '/file.netcdf',
         data=zip_file,
@@ -99,7 +102,8 @@ for layer in layers:
         from geoserver.support import DimensionInfo
         coverage = cat.get_resource(layerName,projectname,workspace=workspace)
         timeInfo = DimensionInfo("time", "true", "LIST", None, "ISO8601", None)
-        coverage.srs=srs
+        #coverage.native_crs=str(srs)+'='+coverage.native_crs
+        #coverage.srs=8011112 #srs #32632 #8011113
         coverage.metadata = ({'time': timeInfo})
         cat.save(coverage)
 logging.info('App can be started at: '+cfg['frontend']['absolutePath']+'/projects/'+projectname+'/index.html')

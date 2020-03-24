@@ -15,39 +15,52 @@
 #=======================================================================
 
 from netCDF4 import Dataset,Variable
+#from pylab import *
 import numpy as np
 import sys, math, os,logging
 import utils, makeMap
 from pyproj import Transformer
 from affine import Affine
 
-# dimXName='rlon' # #
-# standardXName='grid_longitude' # #
-# xUnits='degrees' # #
-# dimYName='rlat' # # 
-# standardYName='grid_latitude'#  #
-# yUnits='degrees' # #
-# crs="mercator2"
-
-dimXName='x' #rlon #
+dimXName='GridsI' #rlon #
 standardXName='projection_x_coordinate' #grid_longitude #
 xUnits='m' # #degrees
-dimYName='y' # # rlat
+dimYName='GridsJ' # # rlat
 standardYName='projection_y_coordinate'#grid_latitude  #
 yUnits='m' # #degrees
 defined_grid_mapping=False
+
+def createDimensions2():
+    for d in ncin.dimensions:
+        dimVar=ncin[d]
+        ncout.createDimension(d,dimVar.size)
+        data=ncout.createVariable(d,np.dtype('double').char,(d))
+        add_attributes(dimVar,data)
+        if d== 'GridsJ':
+            data[:]=dimVar[::-1]
+        else:
+            data[:]=dimVar[:]
+    dimVar=ncin['UTM_Y']
+    data=ncout.createVariable('UTM_Y',np.dtype('double').char,('GridsI', 'GridsJ'))
+    add_attributes(dimVar,data)
+    dimVar=ncin['UTM_X']
+    data=ncout.createVariable('UTM_X',np.dtype('double').char,('GridsI', 'GridsJ'))
+    add_attributes(dimVar,data)
+        
+
+
 
 #Creating Dimensions
 def createDimensions():
 
     # define axis size
-    ncout.createDimension('time', None)  # unlimited
+    ncout.createDimension('Time', None)  # unlimited
     ncout.createDimension(dimYName, nlat)
     ncout.createDimension(dimXName, nlon)
     ncout.createDimension('z', nlon)
 
     # create time axis
-    time = ncout.createVariable('time', np.dtype('double').char, ('time',))
+    time = ncout.createVariable('Time', np.dtype('double').char, ('Time',))
     time.long_name = 'time'
     time.units ='hours since '+year+'-'+month+'-'+day+'T'+timeString+'Z'
     time.calendar = 'standard'
@@ -71,16 +84,13 @@ def createDimensions():
 
 
     if not defined_grid_mapping and 'targetEPSG' in cfg['general']:
-        transformer=Transformer.from_crs(sourceEPSG, cfg['general']['targetEPSG'])
-        locationLongTransformed,locationLatTransformed = transformer.transform(locationLat,locationLong)
-        x[:] = longitudes[::-1]+locationLongTransformed #*resX+locationLong
-        y[:] = latitudes[:]+locationLatTransformed #*resY+locationLat
-    else:
         x[:] = longitudes[:]#+locationLongTransformed #*resX+locationLong
-        y[:] = latitudes[:]#+locationLatTransformed #*resY+locationLat
+        y[:] = latitudes[::-1]#+locationLatTransformed #*resY+locationLat
+    else:
+        x[:] = longitudes[:]
+        y[:] = latitudes[::-1]
 
 #creating vars specified in Config
-#height currently not implemented
 def add_attributes(vin:Variable,data:Variable):
     for ncattr in vin.ncattrs():
         if ncattr!='_FillValue':
@@ -99,7 +109,7 @@ def createVars():
             if  len(vin.dimensions)==3:
                 makeMap.addOverlay(vin.name,vin.long_name,False)
                 fill_val=vin._FillValue if hasattr(vin, '_FillValue') else 999
-                data[var_name] =ncout.createVariable(var_name,np.dtype('double').char,('time',dimYName,dimXName,),fill_value=fill_val)
+                data[var_name] =ncout.createVariable(var_name,np.dtype('double').char,('Time',dimYName,dimXName,),fill_value=fill_val)
                 data[var_name] =add_attributes(vin,data[var_name])
                 data[var_name][:]=vin[:]
                 data[var_name][:]=data[var_name][:,::-1]
@@ -114,7 +124,7 @@ def createVars():
                 for h in heightlevels:
                     var_height_name=var_name+str(h).replace('.','')# adding height value to var name
                     fill_val=vin._FillValue if hasattr(vin, '_FillValue') else 999
-                    data[var_height_name] =ncout.createVariable(var_height_name,np.dtype('double').char,('time',dimYName,dimXName,),fill_value=fill_val)
+                    data[var_height_name] =ncout.createVariable(var_height_name,np.dtype('double').char,('Time',dimYName,dimXName,),fill_value=fill_val)
                     data[var_height_name] =add_attributes(vin,data[var_height_name])
                     data[var_height_name].setncattr('height', h)    
                     heightIndex=np.where(np.array(heights)==h) #find height by value
@@ -135,7 +145,7 @@ def add_defined_grid_mapping(crs):
 def add_manual_grid_mapping(crs):
     data={}
     data[crs] =ncout.createVariable(crs,"S1")
-    utils.addGridMappingVars(data[crs],crs)
+    utils.addGridMappingVars(data[crs],crs,locationLat,locationLong,rotation)
 
 def add_global_attrs():
     data={}
@@ -168,7 +178,10 @@ ncin = Dataset(filename, 'r', format='NETCDF4')
 #global attributes
 locationLat= ncin.getncattr('LocationLatitude')
 locationLong= ncin.getncattr('LocationLongitude')
-false_northing = ncin.getncattr('ModelRotation')
+
+transformer=Transformer.from_crs(4326, cfg['general']['targetEPSG'])
+locationLongTransformed,locationLatTransformed = transformer.transform(locationLat,locationLong)
+rotation = ncin.getncattr('ModelRotation')
 pixelWidth = int(ncin.getncattr('SizeDX')[0])
 pixelHeight = int(ncin.getncattr('SizeDY')[0])
 day,month,year=str(ncin.getncattr('SimulationDate')).split('.')
