@@ -20,7 +20,7 @@ from geoserver.catalog import Catalog
 
 def readConf():
     import yaml
-    with open(sys.path[0] + "/conf/config.yml", 'r') as ymlfile:
+    with open(os.environ['CONFIGFILE'], 'r') as ymlfile:
 	    cfg = yaml.safe_load(ymlfile)
 	    return cfg
 

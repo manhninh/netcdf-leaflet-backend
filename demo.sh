@@ -1,3 +1,4 @@
+export CONFIGFILE=$1
 python scripts/create_netcdf.py
 ret=$?
 if [ $ret -ne 0 ]; then
