@@ -26,20 +26,41 @@ srs=cfg['general']['targetEPSG']
 uploadTimeOut=cfg['geoserver']['uploadTimeOut']
 logging.getLogger().setLevel(cfg['general']['log_level'])
 
+#prepare Session (Still needed to uploaded NetCDF Datastore (not supported by Geoserver Library))
+session = requests.Session()
+session.auth = ('admin', 'geoserver')
+
+def checkSession(geoserver_url:str):
+    try: 
+        if session.get(geoserver_url):
+            logging.info("Server available at: "+geoserver_url)
+            return
+    except:
+        logging.warn("Could not establish connection to Geoserver "+geoserver_url)
+        if geoserver_url.find('localhost')>=0:
+            geoserver_url=geoserver_url.replace('localhost','host.docker.internal') #Is Script Running inside Container?
+            try:
+                if session.get(geoserver_url):
+                    logging.info("Server available at: "+geoserver_url)
+                    return
+            except:
+                logging.error("Could not establish connection to Geoserver "+geoserver_url)
+        else:
+            logging.error("No more options, program will abort")
+    sys.exit() 
+
+checkSession(geoserver_url)
+
 cat=Catalog(geoserver_url+ "/rest/", "admin", "geoserver")
 
 #Check if Config File is correct and NETCDF File existing
 if not os.path.exists(sys.path[0]+'/../outputFiles/'+projectname+'.nc'):
     logging.error('File '+sys.path[0]+'/../outputFiles/'+projectname+'.nc does not exist')
-    exit
+    sys.exit()
 
 headers_zip = {'content-type': 'application/zip'}
 headers_xml = {'content-type': 'text/xml'}
 netcdfFile=sys.path[0]+'/../outputFiles/'+projectname+'.nc'
-
-#prepare Session (Still needed to uploaded NetCDF Datastore (not supported by Geoserver Library))
-session = requests.Session()
-session.auth = ('admin', 'geoserver')
 
 def checkUpload():
     passedTime=0
@@ -52,6 +73,7 @@ def checkUpload():
         else:
             time.sleep(1)
             passedTime+=1
+
 
 #ensure AdvancedProjectionSetting is turned off (if not -> layers wont display layers correctly)
 r_set_wms_options=session.put(geoserver_url+'/rest/services/wms/settings',
