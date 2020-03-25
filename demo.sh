@@ -1,3 +1,8 @@
+helpString="Usage: $0 config.yml"
+if [ -z "$1"]; then
+    echo $helpString
+    exit
+fi
 export CONFIGFILE=$1
 python scripts/create_netcdf.py
 ret=$?
