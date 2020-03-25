@@ -165,7 +165,7 @@ grid_mapping=cfg['general']['grid_mapping']
 inputFile=cfg['general']['inputFile']
 logging.getLogger().setLevel(cfg['general']['log_level'])
 
-filePaths=[workdir+'/inputFiles/'+inputFile,cfg['frontend']['absolutePath']]
+filePaths=[workdir+'/inputFiles/'+inputFile,cfg['frontend']['path']]
 #Check if Config File is correct and Paths are existing
 for path in filePaths:
     if not os.path.exists(path):

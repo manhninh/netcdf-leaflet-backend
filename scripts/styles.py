@@ -2,7 +2,7 @@ from jinja2 import Environment, PackageLoader, select_autoescape
 import sys,utils,logging,os
 
 workdir,cfg=utils.readConf()
-frontendPath=cfg['frontend']['absolutePath']
+frontendPath=cfg['frontend']['path']
 projectName=cfg['general']['project_name']
 
 env = Environment(

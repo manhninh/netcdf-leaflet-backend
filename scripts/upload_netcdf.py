@@ -126,5 +126,5 @@ for layer in layers:
         #coverage.srs=8011112 #srs #32632 #8011113
         coverage.metadata = ({'time': timeInfo})
         cat.save(coverage)
-logging.info('App can be started at: '+cfg['frontend']['absolutePath']+'/projects/'+projectname+'/index.html')
+logging.info('App can be started at: '+cfg['frontend']['path']+'/projects/'+projectname+'/index.html')
 

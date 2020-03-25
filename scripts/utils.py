@@ -30,7 +30,7 @@ def readConf():
 
 cfg=readConf()
 geoserverURL=cfg['geoserver']['url']
-frontendPath=cfg['frontend']['absolutePath']
+frontendPath=cfg['frontend']['path']
 
 def cleanupProjects(ignore):
     cat=Catalog(geoserverURL+ "/rest/", "admin", "geoserver")

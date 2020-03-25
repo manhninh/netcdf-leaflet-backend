@@ -16,7 +16,7 @@ geoserver:
     url: http://localhost:8600/geoserver
     uploadTimeOut: 20 
 frontend:
-    absolutePath: ./frontend/app
+    path: ./frontend/app
 styles: #To be defined in Hex Color Code
     DefaultColors: ["#0571b0","#92c5de","#f7f7f7","#f4a582","#ca0020"]
     customStyles:

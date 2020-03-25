@@ -15,7 +15,7 @@ layers=[]
 
 cfg=utils.readConf()
 geoserverURL=cfg['geoserver']['url']
-frontendPath=cfg['frontend']['absolutePath']
+frontendPath=cfg['frontend']['path']
 projectName=cfg['general']['project_name']
 workspaceName=projectName
 
