@@ -50,17 +50,17 @@ def checkSession(geoserver_url:str):
     sys.exit() 
 
 checkSession(geoserver_url)
-
 cat=Catalog(geoserver_url+ "/rest/", "admin", "geoserver")
 
 #Check if Config File is correct and NETCDF File existing
-if not os.path.exists(sys.path[0]+'/../outputFiles/'+projectname+'.nc'):
-    logging.error('File '+sys.path[0]+'/../outputFiles/'+projectname+'.nc does not exist')
+if not os.path.exists(workdir+'/outputFiles/'+projectname+'.nc'):
+    logging.error('File '+workdir+'/outputFiles/'+projectname+'.nc does not exist')
     sys.exit()
 
 headers_zip = {'content-type': 'application/zip'}
 headers_xml = {'content-type': 'text/xml'}
-netcdfFile=sys.path[0]+'/../outputFiles/'+projectname+'.nc'
+netcdfFile=workdir+'/outputFiles/'+projectname+'.nc'
+
 
 def checkUpload():
     passedTime=0
@@ -74,7 +74,6 @@ def checkUpload():
             time.sleep(1)
             passedTime+=1
 
-
 #ensure AdvancedProjectionSetting is turned off (if not -> layers wont display layers correctly)
 r_set_wms_options=session.put(geoserver_url+'/rest/services/wms/settings',
     data='<wms><metadata><entry key="advancedProjectionHandling">false</entry></metadata></wms>',
@@ -87,9 +86,8 @@ if cat.get_workspace(workspace):
     cat.delete(cat.get_workspace(workspace),purge="all",recurse=True)
 cat.create_workspace(workspace,geoserver_url+'/'+workspace)
 
-
 # zip the ncFile
-zfile = sys.path[0]+'/../outputFiles/data.zip'
+zfile = workdir+'/outputFiles/data.zip'
 logging.info('Writing Zipfile '+zfile)
 output = zipfile.ZipFile(zfile, 'w')
 output.write(netcdfFile, projectname + '.nc', zipfile.ZIP_DEFLATED )
@@ -117,7 +115,7 @@ for layer in layers:
         layer.default_style=layerName
 
         #create New Style from prebuild XML File
-        f = open(sys.path[0]+'/../outputFiles/styles/'+layer.default_style+'.xml')
+        f = open(workdir+'/outputFiles/styles/'+layer.default_style+'.xml')
         cat.create_style(layer.default_style, f.read(),workspace=workspace,overwrite=True)
         cat.save(layer)
         #get coverage to activate time Dimension

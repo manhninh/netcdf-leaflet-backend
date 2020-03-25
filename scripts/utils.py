@@ -22,7 +22,11 @@ def readConf():
     import yaml
     with open(os.environ['CONFIGFILE'], 'r') as ymlfile:
 	    cfg = yaml.safe_load(ymlfile)
-	    return cfg
+        if 'workdir' in cfg['general']:
+        workdir=cfg['general']['workdir']
+        else:
+            workdir='.'
+	    return workdir, cfg
 
 cfg=readConf()
 geoserverURL=cfg['geoserver']['url']
@@ -40,7 +44,6 @@ def cleanupProjects(ignore):
                 projects.append(d)
     return projects
 
-
 def addGridMappingVars(var,grid_mapping,locationLat,locationLon,rotation):
     if grid_mapping=='transverse_mercator':
 	    var.scale_factor_at_central_meridian = 0.9996
@@ -55,50 +58,6 @@ def addGridMappingVars(var,grid_mapping,locationLat,locationLon,rotation):
 	    var.proj4 = "+proj=utm +zone=33 +datum=WGS84 +units=m +no_defs +ellps=WGS84 +towgs84=0,0,0"
 
 
-    elif grid_mapping=="mercator2":
-        var.grid_mapping_name= grid_mapping
-        affine=Affine.rotation(58) #(58*math.pi)/180
-        elt_0_0=str(affine.a)
-        elt_0_1=str(affine.b)
-        elt_0_2=str(posX)
-        elt_1_0=str(affine.d)
-        elt_1_1=str(affine.e)
-        elt_1_2=str(posY)
-        # elt_0_0=str(math.cos(58*math.pi)/180)
-        # elt_0_1=str(math.sin(58*math.pi)/180)
-        # elt_0_2=str(affine.c) #918079.626281209)#0.0) #446044.8576076973
-        # elt_1_0=str(-math.sin(58*math.pi)/180)
-        # elt_1_1=str(math.cos(58*math.pi)/180)
-        # elt_1_2=str(affine.f) #6445039.217828758) #5538108.209966961
-
-
-        var.longitude_of_central_meridian= 0.0
-        var.latitude_of_projection_origin= 0.0 
-        var.standard_parallel= 0.0
-        var._CoordinateTransformType= "Projection"
-        var._CoordinateAxisTypes= "GeoX GeoY"
-        #var.spatial_ref='PROJCS["WGS84 / Google Mercator", GEOGCS["WGS 84", DATUM["World Geodetic System 1984", SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]], AUTHORITY["EPSG","6326"]], PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]], UNIT["degree", 0.017453292519943295], AXIS["Longitude", EAST], AXIS["Latitude", NORTH], AUTHORITY["EPSG","4326"]], PROJECTION["Mercator_1SP"], PARAMETER["semi_minor", 6378137.0], PARAMETER["latitude_of_origin", 0.0], PARAMETER["central_meridian", 0.0], PARAMETER["scale_factor", 1.0], PARAMETER["false_easting", 0.0], PARAMETER["false_northing", 0.0], UNIT["m", 1.0], AXIS["x", EAST], AXIS["y", NORTH], AUTHORITY["EPSG","900913"]]'
-        var.spatial_ref= 'FITTED_CS["BPAF", PARAM_MT["Affine", PARAMETER["num_row", 3], PARAMETER["num_col", 3], PARAMETER["elt_0_0",'+elt_0_0+'], PARAMETER["elt_0_1", '+elt_0_1+'], PARAMETER["elt_0_2", '+elt_0_2+'], PARAMETER["elt_1_0", '+elt_1_0+'], PARAMETER["elt_1_1", '+elt_1_1+'], PARAMETER["elt_1_2", '+elt_1_2+']], PROJCS["WGS84 / Google Mercator", GEOGCS["WGS 84", DATUM["World Geodetic System 1984", SPHEROID["WGS 84", 6378137.0, 298.257223563, AUTHORITY["EPSG","7030"]], AUTHORITY["EPSG","6326"]], PRIMEM["Greenwich", 0.0, AUTHORITY["EPSG","8901"]], UNIT["degree", 0.017453292519943295], AXIS["Longitude", EAST], AXIS["Latitude", NORTH], AUTHORITY["EPSG","4326"]], PROJECTION["Mercator_1SP"], PARAMETER["semi_minor", 6378137.0], PARAMETER["latitude_of_origin", 0.0], PARAMETER["central_meridian", 0.0], PARAMETER["scale_factor", 1.0], PARAMETER["false_easting", 0.0], PARAMETER["false_northing", 0.0], UNIT["m", 1.0], AXIS["x", EAST], AXIS["y", NORTH], AUTHORITY["EPSG","900913"]], AUTHORITY["EPSG","8011113"]]'
-#         var.spatial_ref= 'FITTED_CS["BPAF", PARAM_MT["Affine", PARAMETER["num_row", 3], PARAMETER["num_col", 3], PARAMETER["elt_0_0",'+elt_0_0+'], PARAMETER["elt_0_1", '+elt_0_1+'], PARAMETER["elt_0_2", '+elt_0_2+'], PARAMETER["elt_1_0", '+elt_1_0+'], PARAMETER["elt_1_1", '+elt_1_1+'], PARAMETER["elt_1_2", '+elt_1_2+']], PROJCS["transverse_mercator", \
-#   GEOGCS["unknown", \
-#     DATUM["unknown", \
-#       SPHEROID["unknown", 6378137.0, 298.252840776245]], \
-#     PRIMEM["Greenwich", 0.0], \
-#     UNIT["degree", 0.017453292519943295], \
-#     AXIS["Geodetic longitude", EAST], \
-#     AXIS["Geodetic latitude", NORTH]], \
-#   PROJECTION["Transverse_Mercator"], \
-#   PARAMETER["central_meridian", 9.0], \
-#   PARAMETER["latitude_of_origin", 0.0], \
-#   PARAMETER["scale_factor", 0.9995999932289124], \
-#   PARAMETER["false_easting", 500000.0], \
-#   PARAMETER["false_northing", 0.0], \
-#   UNIT["m", 1.0], \
-#   AXIS["Easting", EAST], \
-#   AXIS["Northing", NORTH],\
-#   AUTHORITY["EPSG","32632"]],\
-#   AUTHORITY["EPSG","8011113"]]'
-        #print (var.spatial_ref)
     elif grid_mapping=="mercator":
         var.grid_mapping_name= grid_mapping
 

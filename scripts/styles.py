@@ -1,7 +1,7 @@
 from jinja2 import Environment, PackageLoader, select_autoescape
-import sys,utils,logging
+import sys,utils,logging,os
 
-cfg=utils.readConf()
+workdir,cfg=utils.readConf()
 frontendPath=cfg['frontend']['absolutePath']
 projectName=cfg['general']['project_name']
 
@@ -51,7 +51,9 @@ def createStyle(styleName,minValue,maxValue,layerMappingName,unit):
     colorMapping=_createColorMapping(colors,values)
     #create SLD Style which is used by Geoserver
     parsed_template=template.render(styleName=styleName,colorMapping=colorMapping)
-    with open(sys.path[0]+'/../outputFiles/styles/'+styleName+'.xml', "w") as fh:
+    if not os.path.isdir(workdir+'/outputFiles/styles/'):
+        os.mkdir(workdir+'/outputFiles/styles/')
+    with open(workdir+'/outputFiles/styles/'+styleName+'.xml', "w") as fh:
         fh.write(parsed_template)
 
 
