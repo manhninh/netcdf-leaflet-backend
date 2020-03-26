@@ -5,8 +5,8 @@ if [ -z "$1" ]; then
 fi
 export CONFIGFILE=$1
 
-if [ -d "usr/src/backend" ]; then #Check if running in container
-path="usr/src/backend"
+if [ -d "/usr/src/backend" ]; then #Check if running in container
+path="/usr/src/backend"
 else
 path="."
 fi
