@@ -4,9 +4,16 @@ if [ -z "$1"]; then
     exit
 fi
 export CONFIGFILE=$1
-python /usr/src/backend/scripts/create_netcdf.py
+
+if [ -d "usr/src/backend" ]; then #Check if running in container
+path="usr/src/backend"
+else
+path="."
+fi
+
+python $path/scripts/create_netcdf.py
 ret=$?
 if [ $ret -ne 0 ]; then
      exit
 fi  
-python /usr/src/backend/scripts/upload_netcdf.py   
+python $path/scripts/upload_netcdf.py   
