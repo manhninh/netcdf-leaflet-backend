@@ -12,9 +12,8 @@
 #=======================================================================
 
 
-import math,yaml,os,sys,shutil
+import math,yaml,os,sys,shutil,logging
 from urllib.request import urlopen
-from affine import Affine
 from geoserver.catalog import Catalog
 
 
@@ -22,20 +21,40 @@ def readConf():
     import yaml
     with open(os.environ['CONFIGFILE'], 'r') as ymlfile:
 	    cfg = yaml.safe_load(ymlfile)
-        if 'workdir' in cfg['general']:
+    if 'workdir' in cfg['general']:
         workdir=cfg['general']['workdir']
-        else:
-            workdir='.'
-	    return workdir, cfg
+    else:
+        workdir='.'
+    return workdir, cfg
 
-cfg=readConf()
-geoserverURL=cfg['geoserver']['url']
+workdir, cfg=readConf()
 frontendPath=cfg['frontend']['path']
-
+def checkURL(geoserver_url:str):
+    try: 
+        if session.get(geoserver_url):
+            logging.info("Server available at: "+geoserver_url)
+            return False,geoserver_url
+    except:
+        logging.warn("Could not establish connection to Geoserver "+geoserver_url)
+        if geoserver_url.find('localhost')>=0:
+            geoserver_url=geoserver_url.replace('localhost','host.docker.internal') #Is Script Running inside Container?
+            try:
+                if session.get(geoserver_url):
+                    logging.info("Server available at: "+geoserver_url)
+                    return False,geoserver_url
+            except:
+                logging.error("Could not establish connection to Geoserver "+geoserver_url)
+        else:
+            logging.error("No more options, program will abort")
+    return True,""
 def cleanupProjects(ignore):
-    cat=Catalog(geoserverURL+ "/rest/", "admin", "geoserver")
-    workspaces=cat.get_workspaces()
+    error,geoserver_url=checkURL(cfg['geoserver']['url'])
     projects=[]
+    if error:
+        logging.warn("Could not establish connection to Geoserver, projectHandling may not working")
+        return projects
+    cat=Catalog(geoserver_url+ "/rest/", "admin", "geoserver")
+    workspaces=cat.get_workspaces()
     for _r, dirs, _f in os.walk(frontendPath+'/projects/'):
         for d in dirs:
             if d not in workspaces and d not in ignore:

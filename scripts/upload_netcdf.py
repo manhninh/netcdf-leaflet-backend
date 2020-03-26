@@ -18,10 +18,10 @@ from geoserver.catalog import Catalog
 import time
 
 #get config variables
-cfg=utils.readConf()
+workdir, cfg=utils.readConf()
 projectname=cfg['general']['project_name']
 workspace=projectname# Has no own configuration because layers wouldn't be unique if multiple projects in one workspace
-geoserver_url=cfg['geoserver']['url']
+
 srs=cfg['general']['targetEPSG']
 uploadTimeOut=cfg['geoserver']['uploadTimeOut']
 logging.getLogger().setLevel(cfg['general']['log_level'])
@@ -30,26 +30,11 @@ logging.getLogger().setLevel(cfg['general']['log_level'])
 session = requests.Session()
 session.auth = ('admin', 'geoserver')
 
-def checkSession(geoserver_url:str):
-    try: 
-        if session.get(geoserver_url):
-            logging.info("Server available at: "+geoserver_url)
-            return
-    except:
-        logging.warn("Could not establish connection to Geoserver "+geoserver_url)
-        if geoserver_url.find('localhost')>=0:
-            geoserver_url=geoserver_url.replace('localhost','host.docker.internal') #Is Script Running inside Container?
-            try:
-                if session.get(geoserver_url):
-                    logging.info("Server available at: "+geoserver_url)
-                    return
-            except:
-                logging.error("Could not establish connection to Geoserver "+geoserver_url)
-        else:
-            logging.error("No more options, program will abort")
-    sys.exit() 
 
-checkSession(geoserver_url)
+
+error,geoserver_url= utils.checkURL(cfg['geoserver']['url'])
+if error:
+    sys.exit()
 cat=Catalog(geoserver_url+ "/rest/", "admin", "geoserver")
 
 #Check if Config File is correct and NETCDF File existing
