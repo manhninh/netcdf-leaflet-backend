@@ -1,7 +1,6 @@
 -i https://pypi.org/simple
-affine==2.3.0
 certifi==2019.11.28
-cftime==1.1.1.1
+cftime==1.1.1.2
 chardet==3.0.4
 future==0.18.2
 geoserver-restconfig==2.0.1
