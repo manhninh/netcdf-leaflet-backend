@@ -15,7 +15,6 @@ pyyaml = "*"
 requests = "*"
 geoserver-restconfig = "*"
 pyproj ="*"
-affine="*"
 
 jinja2="*"
 
