@@ -12,7 +12,7 @@
 #=======================================================================
 
 
-import math,yaml,os,sys,shutil,logging
+import math,yaml,os,sys,shutil,logging,requests
 from urllib.request import urlopen
 from geoserver.catalog import Catalog
 
@@ -31,7 +31,7 @@ workdir, cfg=readConf()
 frontendPath=cfg['frontend']['path']
 def checkURL(geoserver_url:str):
     try: 
-        if session.get(geoserver_url):
+        if requests.get(geoserver_url):
             logging.info("Server available at: "+geoserver_url)
             return False,geoserver_url
     except:
@@ -39,7 +39,7 @@ def checkURL(geoserver_url:str):
         if geoserver_url.find('localhost')>=0:
             geoserver_url=geoserver_url.replace('localhost','host.docker.internal') #Is Script Running inside Container?
             try:
-                if session.get(geoserver_url):
+                if requests.get(geoserver_url):
                     logging.info("Server available at: "+geoserver_url)
                     return False,geoserver_url
             except:
