@@ -1,5 +1,5 @@
 helpString="Usage: $0 config.yml"
-if [ -z "$1"]; then
+if [ -z "$1" ]; then
     echo $helpString
     exit
 fi
