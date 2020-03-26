@@ -20,7 +20,6 @@ import numpy as np
 import sys, math, os,logging
 import utils, makeMap
 from pyproj import Transformer
-from affine import Affine
 
 dimXName='GridsI' #rlon #
 standardXName='projection_x_coordinate' #grid_longitude #
