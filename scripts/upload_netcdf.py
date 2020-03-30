@@ -111,5 +111,5 @@ for layer in layers:
         timeInfo = DimensionInfo("time", "true", "LIST", None, "ISO8601", None)
         coverage.metadata = ({'time': timeInfo})
         cat.save(coverage)
-logging.info('App can be started at: '+cfg['frontend']['path']+'/projects/'+projectName+'/index.html')
+logging.info('App can be started at: '+frontend_path+'/projects/'+projectName+'/index.html')
 
