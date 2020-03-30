@@ -1,9 +1,8 @@
 from jinja2 import Environment, PackageLoader, select_autoescape
 import sys,utils,logging,os
 
-workdir,cfg=utils.readConf()
-frontendPath=cfg['frontend']['path']
-projectName=cfg['general']['project_name']
+cfg ,workdir, frontend_path, _logLevel=utils.readConf()
+projectName=cfg['general']['projectName']
 
 env = Environment(
     loader=PackageLoader('styles', '../templates'),
@@ -61,7 +60,7 @@ def createStyle(styleName,minValue,maxValue,layerMappingName,unit):
 def createLegend():
     template = env.get_template('legend.j2')
     parsed_template=template.render(styles=styles)
-    path =frontendPath+"/projects/"+projectName+"/legend.js"
+    path =frontend_path+"/projects/"+projectName+"/legend.js"
     with open(path, "w") as fh:
         fh.write(parsed_template)
     logging.info("JavascriptFile has been created: "+path)

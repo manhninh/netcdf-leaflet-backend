@@ -13,19 +13,17 @@ overlays=[]
 heights=[]
 layers=[]
 
-workdir,cfg=utils.readConf()
-geoserverURL=cfg['geoserver']['url']
-frontendPath=cfg['frontend']['path']
-projectName=cfg['general']['project_name']
+cfg, workdir, frontend_path, _logLevel=utils.readConf()
+projectName=cfg['general']['projectName']
 workspaceName=projectName
 
 def createMap(SimDate,SimTime,SimDurationMinus1,TimeInterval,Latitude,Longitude):
     #Create ProjectFolder
-    if not os.path.isdir(frontendPath+'/projects/'+projectName+'/'):
-        pathlib.Path(frontendPath+'/projects/'+projectName+'/').mkdir(parents=True,exist_ok=True)
+    if not os.path.isdir(frontend_path+'/projects/'+projectName+'/'):
+        pathlib.Path(frontend_path+'/projects/'+projectName+'/').mkdir(parents=True,exist_ok=True)
     template = env.get_template('utils.j2')
     parsed_template=template.render(SimDate=SimDate,SimTime=SimTime,SimDurationMinus1=SimDurationMinus1,TimeInterval=TimeInterval,Latitude=Latitude,Longitude=Longitude)
-    path =frontendPath+'/projects/'+projectName+"/utils.js"
+    path =frontend_path+'/projects/'+projectName+"/utils.js"
     with open(path, "w") as fh:
         fh.write(parsed_template)
     logging.info("JavascriptFile has been created: "+path)
@@ -51,17 +49,20 @@ def _createLegend():
 
 def _createOverlays():
     template = env.get_template('overlays.j2')
-    parsed_template=template.render(heights=heights,overlays=overlays,layers=layers,url=geoserverURL,workspaceName=workspaceName)
-    path=frontendPath+'/projects/'+projectName+'/overlays.js'
+    parsed_template=template.render(heights=heights,overlays=overlays,layers=layers,url=cfg['geoserver']['url'],workspaceName=workspaceName)
+    path=frontend_path+'/projects/'+projectName+'/overlays.js'
     with open(path, "w") as fh:
         fh.write(parsed_template)
     logging.info("JavascriptFile has been created: "+path)
 def _createProjectHandling():
     template = env.get_template('projectHandling.j2')
     #Delete Unused Static Files and getting List of available projects
-    projects=utils.cleanupProjects([projectName])
+    if cfg['frontend']['projectHandling']:
+        projects=utils.cleanupProjects([projectName])
+    else:
+        projects=[projectName]
     parsed_template=template.render(projects=projects)
-    path=frontendPath+'/projects/projectHandling.js'
+    path=frontend_path+'/projects/projectHandling.js'
     with open(path, "w") as fh:
         fh.write(parsed_template)
     logging.info("JavascriptFile has been created: "+path)
@@ -70,7 +71,7 @@ def finalizeMap():
     _createOverlays()
     _createLegend()
     _createProjectHandling()
-    copy(frontendPath+'/src/index.html',frontendPath+'/projects/'+projectName+'/')
+    copy(frontend_path+'/src/index.html',frontend_path+'/projects/'+projectName+'/')
 
 
     
