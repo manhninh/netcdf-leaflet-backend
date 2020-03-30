@@ -11,7 +11,7 @@
 
 import zipfile
 import requests
-import utils
+from libs import utils
 import sys, os
 import logging
 from geoserver.catalog import Catalog

@@ -39,7 +39,7 @@ def readConf():
     if 'logLevel' in cfg['general']:
         logLevel=cfg['general']['logLevel']
     else:
-        logLevel='WARN' # default config
+        logLevel='INFO' # default config
     if 'path' in cfg['frontend']:
         frontend_path=cfg['frontend']['path']
     else:

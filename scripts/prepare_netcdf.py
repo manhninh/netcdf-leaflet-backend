@@ -18,7 +18,7 @@ from netCDF4 import Dataset,Variable
 #from pylab import *
 import numpy as np
 import sys, math, os,logging
-import utils, makeMap
+from libs import utils, makeMap
 
 dimXName='GridsI'
 dimYName='GridsJ'

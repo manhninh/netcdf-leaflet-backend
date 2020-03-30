@@ -1,11 +1,12 @@
 from jinja2 import Environment, PackageLoader, select_autoescape
-import sys,utils,logging,os
+import sys,logging,os
+from . import utils
 
 cfg ,workdir, frontend_path, _logLevel=utils.readConf()
 projectName=cfg['general']['projectName']
 
 env = Environment(
-    loader=PackageLoader('styles', '../templates'),
+    loader=PackageLoader('libs', '../../templates'),
     autoescape=select_autoescape(['html', 'xml'])
 )
 styles=[]

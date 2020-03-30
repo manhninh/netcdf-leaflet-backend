@@ -2,11 +2,11 @@ from jinja2 import Environment, PackageLoader, select_autoescape
 import sys,os
 from shutil import copy
 import pathlib
-import utils,styles
+from . import utils,styles
 import logging
 
 env = Environment(
-    loader=PackageLoader('makeMap', '../templates'),
+    loader=PackageLoader('libs', '../../templates'),
     autoescape=select_autoescape(['html', 'js','xml'])
 )
 overlays=[]
