@@ -14,7 +14,6 @@ netCDF4 ="*"
 pyyaml = "*"
 requests = "*"
 geoserver-restconfig = "*"
-pyproj ="*"
 
 jinja2="*"
 
