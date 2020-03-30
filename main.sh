@@ -36,7 +36,7 @@ if [ -n "$delete" ]; then
     echo "test2"
     echo "Delete not implemented"
     exit
-elif [ -f "$input" ] && [ -n "$configFile" ]; then
+elif [ -f "$input" ] && [ -f "$configFile" ]; then
     if [ -n "$projectName" ]; then
         export PROJECTNAME=$projectName
     else
