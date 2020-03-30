@@ -43,10 +43,10 @@ def add_attributes(vin:Variable,data:Variable):
     return data
 
 def createVars():
-    for var_name, vin in ncin.variables.items():
-        data={}
-
-        if var_name in attributes:
+    for var_name in attributes:
+        if var_name in ncin.variables:
+            vin = ncin.variables[var_name]
+            data={}
             var_name=var_name.replace('.','_') 
             if  len(vin.dimensions)==3: 
                 makeMap.addOverlay(vin.name,vin.long_name,False)
@@ -81,6 +81,8 @@ def createVars():
                     makeMap.addHeight(str(h).replace('.',''),heightString)
             else:
                 logging.warn('Variable '+ var_name + ' has no valid dimensions')
+        else:
+            logging.warn('Variable '+ var_name + ' not found in '+inputFile)
 
 def add_manual_grid_mapping():
     data={}
