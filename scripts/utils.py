@@ -51,7 +51,7 @@ def readConf():
         if not os.path.exists(path):
             logging.error('Path: '+path+' does not exist')
             sys.exit(1)
-        return cfg, workdir, frontend_path, logLevel
+    return cfg, workdir, frontend_path, logLevel
 
 cfg, workdir, frontend_path, logLevel=readConf()
 def checkURL(geoserver_url:str):
