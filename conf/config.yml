@@ -1,14 +1,14 @@
 general:
     logLevel: INFO #[optional]
-    attributes_to_read:
+    attributes_to_read: #equal short names of netcdf-variables
         - TSurf
-        - Albedo
-        - WindSpd
+        # - Albedo
+        # - WindSpd
         # - T
         # - LatentHeatFlux
-    projectName: kartoza #also used for workspacename in Geoserver 
+    projectName: kartoza #[optional] Also used for workspacename
     height_levels: [0.3,10.5,40.5]
-    inputFile: ./inputFiles/MZ_Flow_2018-07-22_05.00.00-new.nc #MZ_Flow_2018-07-22_05.00.00.nc #BVOC_Mainz_IsoOff_2018-07-06_05.00.00.nc #MZ_Flow_2018-07-22_05.00.00.nc #NewSimulation_2018-06-23_05.00.00.nc # #NewSimulation_2018-06-23_05.00.00.nc # #NewSimulation_2018-06-23_05.00.00.nc #BVOC_Mainz_IsoOff_2018-07-06_05.00.00.nc #NewSimulation_2018-06-23_05.00.00.nc
+    inputFile: ./inputFiles/MZ_Flow_2018-07-22_05.00.00-new.nc #[optional]
 geoserver:
     url: http://localhost:8600/geoserver
     uploadTimeOut: 20 
