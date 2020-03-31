@@ -47,7 +47,7 @@ elif [ -f "$input" ] && [ -f "$configFile" ]; then
     export INPUTFILE=$input
     export CONFIGFILE=$configFile
 else
-  echo "test22"
+    echo "Are you sure the given files are existing"
     echo "$usage" >&2
     exit 1
 fi
