@@ -17,14 +17,23 @@ from urllib.request import urlopen
 from geoserver.catalog import Catalog
 
 
+
 def readConf():
-    import yaml
     if 'CONFIGFILE' in os.environ:
         with open(os.environ['CONFIGFILE'], 'r') as ymlfile:
             cfg = yaml.safe_load(ymlfile)
     else:
-        logging.error("No ConfigFile specified (export CONFIGFILE)")
-        sys.exit(1)
+        logging.warning("No ConfigFile specified (export CONFIGFILE), using default one")
+        if os.path.exists("./config.yml"):
+            cfg = yaml.safe_load("./config.yml")
+        else:
+            logging.error("Could not find Configfile")
+            sys.exit
+    if 'GEOSERVER_PASSWORD' in os.environ:
+        cfg['geoserver']['password']=os.environ['GEOSERVER_PASSWORD']
+    else:
+        cfg['geoserver']['password']='geoserver'
+        logging.warning("No Geoserver Password specified (export GEOSERVER_PASSWORD), using default one")
     #Overwrite Config Vars
     if 'PROJECTNAME' in os.environ:
         cfg['general']['projectName']=os.environ['PROJECTNAME']
@@ -32,39 +41,32 @@ def readConf():
         cfg['general']['inputFile']=os.environ['INPUTFILE']
 
     # Optional Vars
-    if 'workdir' in cfg['general']:
-        workdir=cfg['general']['workdir']
-    else:
-        workdir='.' # default config
-    if 'logLevel' in cfg['general']:
-        logLevel=cfg['general']['logLevel']
-    else:
-        logLevel='INFO' # default config
-    if 'path' in cfg['frontend']:
-        frontend_path=cfg['frontend']['path']
-    else:
-        frontend_path=workdir+'/frontend/app' #default config
-    
-    #Check if Config File is correct and Paths are existing
-    filePaths=[cfg['general']['inputFile'],frontend_path]
-    for path in filePaths:
-        if not os.path.exists(path):
-            logging.error('Path: '+path+' does not exist')
-            sys.exit(1)
-    return cfg, workdir, frontend_path, logLevel
+    if not 'workdir' in cfg['general']:
+        cfg['general']['workdir']='.' # default config
+    if not 'path' in cfg['frontend']:
+        cfg['frontend']['path']=cfg['general']['workdir'] +'/frontend/app'# default config
+    if not os.path.exists(cfg['frontend']['path']):
+        logging.error('Frontendpath: '+cfg['frontend']['path']+' does not exist')
+        sys.exit(1)
+    if not 'logLevel' in cfg['general']:
+        cfg['general']['logLevel']='INFO' # default config
+    logging.getLogger().setLevel(cfg['general']['logLevel'])
+    return cfg
+cfg=readConf()
 
-cfg, workdir, frontend_path, logLevel=readConf()
-def checkURL(geoserver_url:str):
+def checkConnection(geoserver_url:str, user:str, password:str):
+    session = requests.Session()
+    session.auth = (cfg['geoserver']['user'], cfg['geoserver']['password'])
     try: 
-        if requests.get(geoserver_url):
+        if session.get(geoserver_url):
             logging.info("Server available at: "+geoserver_url)
             return False,geoserver_url
     except:
-        logging.warn("Could not establish connection to Geoserver "+geoserver_url)
+        logging.warning("Could not establish connection to Geoserver "+geoserver_url)
         if geoserver_url.find('localhost')>=0:
             geoserver_url=geoserver_url.replace('localhost','host.docker.internal') #Is Script Running inside Container?
             try:
-                if requests.get(geoserver_url):
+                if session.get(geoserver_url):
                     logging.info("Server available at: "+geoserver_url)
                     return False,geoserver_url
             except:
@@ -72,21 +74,28 @@ def checkURL(geoserver_url:str):
         else:
             logging.error("No more options, program will abort")
     return True,""
+()
+def getFrontendDirs():
+    for _r, dirs, _f in os.walk(cfg['frontend']['path']+'/projects/'):
+        return dirs
+
 def cleanupProjects(ignore):
-    error,geoserver_url=checkURL(cfg['geoserver']['url'])
+    error,geoserver_url=checkConnection(cfg['geoserver']['url']+ "/rest/",cfg['geoserver']['user'],cfg['geoserver']['password'])
     projects=[]
     if error:
-        logging.warn("Could not establish connection to Geoserver, projectHandling may not working")
+        logging.warning("Could not establish connection to Geoserver, projectHandling may not working")
         return projects
-    cat=Catalog(geoserver_url+ "/rest/", "admin", "geoserver")
+    cat=Catalog(geoserver_url, "admin", "geoserver")
     workspaces=[o.name for o in cat.get_workspaces()]
-    for _r, dirs, _f in os.walk(frontend_path+'/projects/'):
-        for d in dirs:
-            if d not in workspaces and d not in ignore:
-                shutil.rmtree(frontend_path+'/projects/'+d)
-            else:
-                projects.append(d)
+    dirs=getFrontendDirs()
+    for d in dirs:
+        if d not in workspaces and d not in ignore:
+            shutil.rmtree(cfg['frontend']['path']+'/projects/'+d)
+            logging.info("Deleted Frontend Folder for Project "+d)
+        else:
+            projects.append(d)
     return projects
+
 
 def addGridMappingVars(var,locationLat,locationLon,rotation):
     var.grid_mapping_name= "mercator"
