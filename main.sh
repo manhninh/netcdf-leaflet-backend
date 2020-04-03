@@ -1,66 +1,167 @@
 #!/bin/bash
-usage="$(basename "$0") [-h] [-c -i (-p)] [-d] -- Program to upload a NetCDF File to Geoserver and creating static JavascriptFiles used by netcdf-leaflet-frontend
+read_password()
+{
+    echo -n "Geoserver Password:" 
+    read -s geoserver_password
+    echo ""
+    export GEOSERVER_PASSWORD=$geoserver_password
+}
 
-where:
-    -h  show this help text
-    -i  the InputFile(s) to be read (Can be a folder or a Single File)
-    -p  [optional] the ProjectName to be used (default: FileName)
-    -c  the ConfigFile to be used
-    -d  [optional] the ProjectName to be deleted"
 
-while getopts 'hdp::i::c::' option; do
-  case "$option" in
-    h) echo "$usage"
-       exit
-       ;;
-    i) input=$OPTARG
-       ;;
-    p) projectName=$OPTARG
-       ;;
-    c) configFile=$OPTARG
-       ;;
-    d) delete="True"
-       ;;
-    :) printf "missing argument for -%s\n" "$OPTARG" >&2
-       echo "$usage" >&2
-       exit 1
-       ;;
-   \?) printf "illegal option: -%s\n" "$OPTARG" >&2
-       echo "$usage" >&2
-       exit 1
-       ;;
-  esac
+list() {
+    read_password
+    python $path/scripts/list_projects.py $projects
+}
+create() {
+    read_password
+    if [ ! -z $projects ]; then
+
+        nInputFiles=$(ls -1 ./inputFiles/*.nc |  wc -l)
+        if [ ${#projects[@]} -eq 1 ] || [ ${#projects[@]} -eq $nInputFiles ]; then
+            files=./inputFiles/*.nc
+            if [ ! ${#projects[@]} -eq ${#files[@]} ]; then
+                dynamicProjects=1
+            fi
+            echo $removeOutputFiles
+            if [ -n $removeOutputFiles ]; then
+                export REMOVEOUTPUTFILES=1
+            else
+                unset REMOVEOUTPUTFILES
+            fi
+            i=0
+            for f in $files; do
+                export INPUTFILE=$f
+                if [ -z $dynamicProjects ]; then
+                    export PROJECTNAME=${projects[0]}$((i+1))
+                else
+                    export PROJECTNAME=${projects[i]}
+                fi
+                ((i++))
+                python $path/scripts/prepare_netcdf.py
+                ret=$?
+                if [ $ret -ne 0 ]; then
+                    continue
+                fi
+                python $path/scripts/upload_netcdf.py
+
+            done
+        else
+            echo 'ERROR: Project Count does not match number of files in "inputFolder"'
+            exit 1
+        fi
+    else
+        echo 'ERROR: Projects to be created must be specified with -p option'
+        exit 1
+    fi
+}
+
+delete() {
+    if [ ! -z $projects ]; then
+        read_password
+        python $path/scripts/delete_projects.py ${projects[@]}
+    else
+        echo 'ERROR: Projects to be deleted must be specified with -p option'
+        exit 1
+    fi
+}
+
+#########################
+# The command line help #
+#########################
+display_help() {
+    echo "Program to Handle Geoserver Projects based on NetCDF Files; Used by netcdf-leaflet-frontend"
+    echo "Usage: $0 [option...] {list|create|delete}" >&2
+    echo
+    echo "   -p, --projects                         projects to be created/deleted"
+    echo "   -c, --config [optional]                Config File to be used  (default: ./config.yml)"
+    echo "   -r  --remove [optional] (create only)  Remove used OutputFiles"
+    exit 1
+}
+
+
+
+################################
+# Check if parameters options  #
+# are given on the commandline #
+################################
+while :
+do
+    case "$1" in
+        
+      -p | --projects)
+          if [ $# -ne 0 ]; then
+            projects+=("$2")  
+          fi
+          shift 2
+          ;;
+      -h | --help)
+          display_help 
+          exit 0
+          ;;
+      -r | --remove)
+          removeOutputFiles=1  
+          shift 1
+          ;;
+      -c | --config)
+        if [ $# -ne 0 ]; then
+        config="$2"
+        fi
+        shift 2
+        ;;
+
+      --) # End of all options
+          shift
+          break
+          ;;
+      -*)
+          echo "Error: Unknown option: $1" >&2
+          exit 1 
+          ;;
+      *)  # No more options
+          break
+          ;;
+    esac
 done
 
-if [ -n "$delete" ]; then
-    echo "test2"
-    echo "Delete not implemented"
-    exit
-elif [ -f "$input" ] && [ -f "$configFile" ]; then
-    if [ -n "$projectName" ]; then
-        export PROJECTNAME=$projectName
-    else
-        echo "Without -p Parameter Not implemented"
-        exit 1
-        export PROJECTNAME=$input
-    fi
-    export INPUTFILE=$input
-    export CONFIGFILE=$configFile
-else
-    echo "Are you sure the given files are existing"
-    echo "$usage" >&2
-    exit 1
-fi
 
-if [ -d "/usr/src/backend" ]; then #Check if running in container
+# Check if running in container
+if [ -d "/usr/src/backend" ]; then 
 path="/usr/src/backend"
 else
 path="."
 fi
 
-python $path/scripts/prepare_netcdf.py
-ret=$?
-if [ $ret -ne 0 ]; then
-     exit
-fi  
-python $path/scripts/upload_netcdf.py   
+# Check ConfigFile
+if  [ -f "$config" ]; then
+    export CONFIGFILE=$config
+elif [ -f "./config.yml" ]; then
+    export CONFIGFILE="./config.yml"
+else 
+    echo "Error: Could not load Configfile (default: ./config.yml)"
+    echo ""
+    display_help
+    exit 1
+fi
+
+
+###################### 
+# Check if parameter #
+# is set too execute #
+######################
+case "$1" in
+  list)
+    list # calling function to list projects
+    ;;
+  create)
+    create # calling function to create projects
+    ;;
+  delete)
+    delete # calling function to delete projects
+    ;;
+  *)
+    display_help
+    exit 1
+    ;;
+esac
+
+
