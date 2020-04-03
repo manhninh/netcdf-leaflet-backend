@@ -35,6 +35,11 @@ create() {
         else
             export PROJECTNAME=${projects[0]}$((i+1))
         fi
+        valid="A-Za-z0-9._-"
+        if [[ ! $PROJECTNAME =~ ^[$valid]+$ ]]; then
+            echo "Error: Invalid ProjectName $PROJECTNAME , $f will be skipped"
+            continue
+        fi
         ((i++))
         python $path/scripts/prepare_netcdf.py
         ret=$?
