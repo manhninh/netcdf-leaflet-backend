@@ -15,44 +15,38 @@ list() {
 create() {
     read_password
     if [ ! -z $projects ]; then
+        dynamicProjects=1
+    fi
 
-        nInputFiles=$(ls -1 ./inputFiles/*.nc |  wc -l)
-        if [ ${#projects[@]} -eq 1 ] || [ ${#projects[@]} -eq $nInputFiles ]; then
-            files=./inputFiles/*.nc
-            if [ ! ${#projects[@]} -eq ${#files[@]} ]; then
-                dynamicProjects=1
-            fi
-            echo $removeOutputFiles
-            if [ -n $removeOutputFiles ]; then
-                export REMOVEOUTPUTFILES=1
-            else
-                unset REMOVEOUTPUTFILES
-            fi
-            i=0
-            for f in $files; do
-                export INPUTFILE=$f
-                if [ -z $dynamicProjects ]; then
-                    export PROJECTNAME=${projects[0]}$((i+1))
-                else
-                    export PROJECTNAME=${projects[i]}
-                fi
-                ((i++))
-                python $path/scripts/prepare_netcdf.py
-                ret=$?
-                if [ $ret -ne 0 ]; then
-                    continue
-                fi
-                python $path/scripts/upload_netcdf.py
-
-            done
-        else
-            echo 'ERROR: Project Count does not match number of files in "inputFolder"'
-            exit 1
-        fi
-    else
-        echo 'ERROR: Projects to be created must be specified with -p option'
+    nInputFiles=$(ls -1 ./inputFiles/*.nc |  wc -l)
+    if [ $nInputFiles -eq 0 ]; then
+        echo "Error: inputFiles Directory is empty"
         exit 1
     fi
+    files=./inputFiles/*.nc
+    if [ -n $removeOutputFiles ]; then
+        export REMOVEOUTPUTFILES=1
+    else
+        unset REMOVEOUTPUTFILES
+    fi
+    i=0
+    for f in $files; do
+        export INPUTFILE=$f
+        if [ -z $dynamicProjects ]; then
+            f=${f##*/}
+            f="${f%.*}"
+            export PROJECTNAME="$f"
+        else
+            export PROJECTNAME=${projects[0]}$((i+1))
+        fi
+        ((i++))
+        python $path/scripts/prepare_netcdf.py
+        ret=$?
+        if [ $ret -ne 0 ]; then
+            continue
+        fi
+        python $path/scripts/upload_netcdf.py
+    done
 }
 
 delete() {
@@ -72,7 +66,7 @@ display_help() {
     echo "Program to Handle Geoserver Projects based on NetCDF Files; Used by netcdf-leaflet-frontend"
     echo "Usage: $0 [option...] {list|create|delete}" >&2
     echo
-    echo "   -p, --projects                         projects to be created/deleted"
+    echo "   -p, --projects [optional]              projectNames to be created/deleted"
     echo "   -c, --config [optional]                Config File to be used  (default: ./config.yml)"
     echo "   -r  --remove [optional] (create only)  Remove used OutputFiles"
     exit 1
