@@ -23,12 +23,8 @@ create() {
         echo "Error: inputFiles Directory is empty"
         exit 1
     fi
+    # Read InputFiles
     files=./inputFiles/*.nc
-    if [ -n $removeOutputFiles ]; then
-        export REMOVEOUTPUTFILES=1
-    else
-        unset REMOVEOUTPUTFILES
-    fi
     i=0
     for f in $files; do
         export INPUTFILE=$f
@@ -68,7 +64,6 @@ display_help() {
     echo
     echo "   -p, --projects [optional]              projectNames to be created/deleted"
     echo "   -c, --config [optional]                Config File to be used  (default: ./config.yml)"
-    echo "   -r  --remove [optional] (create only)  Remove used OutputFiles"
     exit 1
 }
 
@@ -91,10 +86,6 @@ do
       -h | --help)
           display_help 
           exit 0
-          ;;
-      -r | --remove)
-          removeOutputFiles=1  
-          shift 1
           ;;
       -c | --config)
         if [ $# -ne 0 ]; then
