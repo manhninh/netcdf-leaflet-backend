@@ -12,37 +12,36 @@
 import zipfile
 import requests
 from libs import utils
-import sys, os
+import sys, os, shutil
 import logging
 from geoserver.catalog import Catalog
 import time
 
 #get config variables
-cfg, workdir,frontend_path,logLevel=utils.readConf()
+cfg=utils.cfg
 projectName=cfg['general']['projectName']
 workspace=projectName# Has no own configuration because layers wouldn't be unique if multiple projects in one workspace
 # This could be fixed by using custom layernames (projectname-layername)
 
 uploadTimeOut=cfg['geoserver']['uploadTimeOut']
-logging.getLogger().setLevel(logLevel)
 
 #prepare Session (Still needed to upload NetCDF Datastore (not supported by Geoserver Library))
 session = requests.Session()
 session.auth = ('admin', 'geoserver')
-
-error,geoserver_url= utils.checkURL(cfg['geoserver']['url'])
+error,geoserver_url= utils.checkConnection(cfg['geoserver']['url']+ "/rest",cfg['geoserver']['user'], cfg['geoserver']['password'])
 if error:
-    sys.exit()
-cat=Catalog(geoserver_url+ "/rest/", "admin", "geoserver")
+    logging.error('Failed to upload Project "'+projectName +'". Could not establish Connection to Geoserver at '+cfg['geoserver']['url'])
+    sys.exit(1)
+cat=Catalog(geoserver_url, "admin", "geoserver")
 
 #Check if Config File is correct and NETCDF File existing
-if not os.path.exists(workdir+'/outputFiles/'+projectName+'.nc'):
-    logging.error('File '+workdir+'/outputFiles/'+projectName+'.nc does not exist')
+if not os.path.exists(cfg['general']['workdir']+'/outputFiles/'+projectName+'.nc'):
+    logging.error('File '+cfg['general']['workdir']+'/outputFiles/'+projectName+'.nc does not exist')
     sys.exit()
 
 headers_zip = {'content-type': 'application/zip'}
 headers_xml = {'content-type': 'text/xml'}
-netcdfFile=workdir+'/outputFiles/'+projectName+'.nc'
+netcdfFile=cfg['general']['workdir']+'/outputFiles/'+projectName+'.nc'
 
 
 def checkUpload():
@@ -55,22 +54,30 @@ def checkUpload():
             exit(1)
         else:
             time.sleep(1)
+            cat.reload()
             passedTime+=1
 
 #ensure AdvancedProjectionSetting is turned off (if not -> layers wont display layers correctly)
-r_set_wms_options=session.put(geoserver_url+'/rest/services/wms/settings',
+r_set_wms_options=session.put(geoserver_url+'/services/wms/settings',
     data='<wms><metadata><entry key="advancedProjectionHandling">false</entry></metadata></wms>',
     headers=headers_xml)
 
 # Delete old workspace and create new one
-if cat.get_store(projectName,workspace):
-    cat.delete(cat.get_store(projectName,workspace=workspace),purge="all",recurse=True)
 if cat.get_workspace(workspace):
+    # logging.info("Deleting existing Workspace "+workspace)
+    # for layer in cat.get_layers():
+    #     if layer.resource.workspace.name==workspace:
+    #         cat.delete(layer)
+    # for style in cat.get_styles():
+    #     if style.workspace is not None and style.workspace==workspace:
+    #         cat.delete(style,recurse=True)
+    if cat.get_store(projectName,workspace):
+        cat.delete(cat.get_store(projectName,workspace=workspace),purge="all",recurse=True)
     cat.delete(cat.get_workspace(workspace),purge="all",recurse=True)
 cat.create_workspace(workspace,geoserver_url+'/'+workspace)
 
 # zip the ncFile
-zfile = workdir+'/outputFiles/data.zip'
+zfile = cfg['general']['workdir']+'/outputFiles/data.zip'
 logging.info('Writing Zipfile '+zfile)
 output = zipfile.ZipFile(zfile, 'w')
 output.write(netcdfFile, projectName + '.nc', zipfile.ZIP_DEFLATED )
@@ -79,13 +86,13 @@ output.close()
 #upload zip file (creating coveragestore and layers automatically)
 logging.info('Uploading '+zfile)
 with open(output.filename, 'rb') as zip_file:
-    r_create_layer = session.put(geoserver_url+'/rest/workspaces/' + workspace  + '/coveragestores/' + projectName  + '/file.netcdf',
+    r_create_layer = session.put(geoserver_url+'/workspaces/' + workspace  + '/coveragestores/' + projectName  + '/file.netcdf',
         data=zip_file,
         headers=headers_zip)
 if r_create_layer.status_code==201:
     logging.info('Succecssfully uploaded Zipfile')
 else:
-    logging.error('TIMEOUT: Failed to upload NetCDF File')
+    logging.error('Failed to upload NetCDF File')
     exit(1)
 os.remove(output.filename)
 
@@ -99,11 +106,11 @@ for layer in layers:
         #GetStyleName
         layerName=layer.resource.name
         #Set Stylename
-        layer.default_style=layerName
+        layer.default_style=workspace+":"+layerName
 
         #create New Style from prebuild XML File
-        f = open(workdir+'/outputFiles/styles/'+layer.default_style+'.xml')
-        cat.create_style(layer.default_style, f.read(),workspace=workspace,overwrite=True)
+        f = open(cfg['general']['workdir']+'/outputFiles/styles/'+layerName+'.xml')
+        cat.create_style(layerName, f.read(),workspace=workspace)
         cat.save(layer)
         #get coverage to activate time Dimension
         from geoserver.support import DimensionInfo
@@ -111,5 +118,8 @@ for layer in layers:
         timeInfo = DimensionInfo("time", "true", "LIST", None, "ISO8601", None)
         coverage.metadata = ({'time': timeInfo})
         cat.save(coverage)
-logging.info('App can be started at: '+frontend_path+'/projects/'+projectName+'/index.html')
+if 'removeOutputFiles' in cfg['general'] and not cfg['general']['removeOutputFiles']==False:
+    shutil.rmtree(cfg['general']['workdir']+'/outputFiles/')
+    logging.info("Deleted outputFiles")
+logging.info('App can be started at: '+cfg['frontend']['path']+'/projects/'+projectName+'/index.html')
 
