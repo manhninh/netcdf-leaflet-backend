@@ -1,28 +1,28 @@
 #!/bin/bash
 read_password()
 {
-    echo -n "Geoserver Password:" 
-    read -s geoserver_password
-    echo ""
-    export GEOSERVER_PASSWORD=$geoserver_password
+    if [ -z $GEOSERVER_PASSWORD ]; then
+        read -s -p "Geoserver Password: " geoserver_password
+        echo
+        export GEOSERVER_PASSWORD=$geoserver_password
+    fi
 }
-
 
 list() {
     read_password
-    python $path/scripts/list_projects.py $projects
+    python $path/scripts/list_projects.py
 }
 create() {
-    read_password
-    if [ ! -z $projects ]; then
-        dynamicProjects=1
-    fi
-
     nInputFiles=$(ls -1 ./inputFiles/*.nc |  wc -l)
     if [ $nInputFiles -eq 0 ]; then
         echo "Error: inputFiles Directory is empty"
         exit 1
     fi
+
+    if [ ! -z $projects ]; then
+        dynamicProjects=1
+    fi
+    read_password
     # Read InputFiles
     files=./inputFiles/*.nc
     i=0
@@ -66,8 +66,6 @@ display_help() {
     echo "   -c, --config [optional]                Config File to be used  (default: ./config.yml)"
     exit 1
 }
-
-
 
 ################################
 # Check if parameters options  #
@@ -127,7 +125,6 @@ else
     display_help
     exit 1
 fi
-
 
 ###################### 
 # Check if parameter #
