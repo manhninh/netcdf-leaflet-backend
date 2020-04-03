@@ -9,14 +9,14 @@ general:
     #projectName: mz1 #Only used when running without main.sh
     height_levels: [0.3,10.5,40.5]
     #inputFile: ./inputFiles/MZ_Flow_2018-07-22_05.00.00-new.nc #Only used when running without main.sh
-    removeOutputFiles: False
+    removeOutputFiles: False #[optional]
 geoserver:
     url: http://localhost:8600/geoserver
     user: admin #password will be prompted in main.sh
     uploadTimeOut: 20 
 frontend:
     path: ./frontend/app #[optional]
-    cleanup: False #If active Removal of not found workspaces at Geoserver
+    cleanup: False #[optional] #If active Removal of not found workspaces at Geoserver
 styles: #To be defined in Hex Color Code
     DefaultColors: ["#0571b0","#92c5de","#f7f7f7","#f4a582","#ca0020"]
     customStyles:

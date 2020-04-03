@@ -43,7 +43,9 @@ def readConf():
     # Optional Vars
     if not 'workdir' in cfg['general']:
         cfg['general']['workdir']='.' # default config
-    if not 'path' in cfg['frontend']:
+    if not 'frontend' in cfg or not 'path' in cfg['frontend']:
+        if not 'frontend' in cfg:
+            cfg['frontend']={}
         cfg['frontend']['path']=cfg['general']['workdir'] +'/frontend/app'# default config
     if not os.path.exists(cfg['frontend']['path']):
         logging.error('Frontendpath: '+cfg['frontend']['path']+' does not exist')

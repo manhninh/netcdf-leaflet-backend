@@ -57,7 +57,7 @@ def _createOverlays():
 def _createProjectHandling():
     template = env.get_template('projectHandling.j2')
     #Delete Unused Static Files and getting List of available projects
-    if 'cleanup' in cfg['frontend'] and not cfg['frontend']['cleanup']==False:
+    if 'frontend' in cfg and 'cleanup' in cfg['frontend'] and not cfg['frontend']['cleanup']==False:
         projects=utils.cleanupProjects([projectName])
     else:
         projects=utils.getFrontendDirs()
