@@ -2,19 +2,21 @@ general:
     logLevel: INFO #[optional]
     attributes_to_read: #equal short names of netcdf-variables
         - TSurf
-        # - Albedo
+        - Albedo
         # - WindSpd
         # - T
         # - LatentHeatFlux
-    projectName: kartoza #[optional] Also used for workspacename
+    #projectName: mz1 #Only used when running without main.sh
     height_levels: [0.3,10.5,40.5]
-    inputFile: ./inputFiles/MZ_Flow_2018-07-22_05.00.00-new.nc #[optional]
+    #inputFile: ./inputFiles/MZ_Flow_2018-07-22_05.00.00-new.nc #Only used when running without main.sh
+    removeOutputFiles: False
 geoserver:
     url: http://localhost:8600/geoserver
+    user: admin #password will be prompted in main.sh
     uploadTimeOut: 20 
 frontend:
     path: ./frontend/app #[optional]
-    projectHandling: True #If multiple Geoserver Instances are used the projectHandling does not work (If active Deletion of not found workspaces)
+    cleanup: False #If active Removal of not found workspaces at Geoserver
 styles: #To be defined in Hex Color Code
     DefaultColors: ["#0571b0","#92c5de","#f7f7f7","#f4a582","#ca0020"]
     customStyles:
