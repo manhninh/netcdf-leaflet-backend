@@ -33,7 +33,11 @@ create() {
             f="${f%.*}"
             export PROJECTNAME="$f"
         else
-            export PROJECTNAME=${projects[0]}$((i+1))
+            if [ $nInputFiles == 1 ]; then 
+                export  PROJECTNAME=${projects[0]}
+            else
+                export PROJECTNAME=${projects[0]}$((i+1))
+            fi
         fi
         valid="A-Za-z0-9._-"
         if [[ ! $PROJECTNAME =~ ^[$valid]+$ ]]; then
