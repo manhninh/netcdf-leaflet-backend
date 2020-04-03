@@ -20,6 +20,8 @@ import numpy as np
 import sys, math, os,logging
 from libs import utils, makeMap
 
+cfg=utils.cfg
+
 dimXName='GridsI'
 dimYName='GridsJ'
 dimZName='GridsK'
@@ -80,9 +82,9 @@ def createVars():
                     makeMap.addHeightLayer(var_height_name,heightString,vin.long_name,minValue=vin_min,maxValue=vin_max,unit=vin.units)
                     makeMap.addHeight(str(h).replace('.',''),heightString)
             else:
-                logging.warn('Variable '+ var_name + ' has no valid dimensions')
+                logging.warning('Variable '+ var_name + ' has no valid dimensions')
         else:
-            logging.warn('Variable '+ var_name + ' not found in '+inputFile)
+            logging.warning('Variable '+ var_name + ' not found in '+inputFile)
 
 def add_manual_grid_mapping():
     data={}
@@ -97,17 +99,20 @@ def add_global_attrs():
 # read netCDF file
 #-----------------
 #get config variables
-cfg, workdir, frontend_path, logLevel =utils.readConf()
 
 attributes=cfg['general']['attributes_to_read']
 projectName=cfg['general']['projectName']
 heightlevels=cfg['general']['height_levels']
 inputFile=cfg['general']['inputFile']
-logging.getLogger().setLevel(logLevel)
 
 # open a netCDF file to read
 filename = cfg['general']['inputFile']
-ncin = Dataset(filename, 'r', format='NETCDF4')
+try:
+    ncin = Dataset(filename, 'r', format='NETCDF4')
+except:
+    logging.error(filename +"is not a valid NetCDF File")
+    sys.exit(1)
+logging.info("Creating project "+projectName +" from "+inputFile)
 
 #global attributes
 locationLat= ncin.getncattr('LocationLatitude')
@@ -134,9 +139,9 @@ ntime = len(times)
 makeMap.createMap('-'.join([year,month,day]),timeString,ntime-1,int(times[0]*60),locationLat,locationLong)
 
 # open netCDF file to write
-if not os.path.isdir(workdir+'/outputFiles/'):
-    os.mkdir(workdir+'/outputFiles/')
-ncout = Dataset(workdir+'/outputFiles/'+ projectName +'.nc', 'w', format='NETCDF4')
+if not os.path.isdir(cfg['general']['workdir']+'/outputFiles/'):
+    os.mkdir(cfg['general']['workdir']+'/outputFiles/')
+ncout = Dataset(cfg['general']['workdir']+'/outputFiles/'+ projectName +'.nc', 'w', format='NETCDF4')
 
 
 add_manual_grid_mapping()
