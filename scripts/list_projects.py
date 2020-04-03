@@ -30,6 +30,7 @@ for _r, dirs, _f in os.walk(cfg['frontend']['path']+'/projects/'):
         logging.info("No Frontend Folders found at "+cfg['frontend']['path']+'/projects/')
     for d in dirs:
         logging.info("Found Frontend Folder "+d)
+    break
 
 #List Geoserver Workspaces 
 if not offline:
