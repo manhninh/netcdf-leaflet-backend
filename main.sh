@@ -55,13 +55,18 @@ create() {
 }
 
 delete() {
+    
     if [ ! -z $projects ]; then
         read_password
-        python $path/scripts/delete_projects.py ${projects[@]}
+        for project in  ${projects[@]}; do
+            export PROJECTNAME=$project
+            python $path/scripts/delete_project.py $project
+        done
     else
         echo 'ERROR: Projects to be deleted must be specified with -p option'
         exit 1
     fi
+  
 }
 
 #########################
@@ -131,7 +136,6 @@ elif [ -f "./config.yml" ]; then
 else 
     echo "Error: Could not load Configfile (default: ./config.yml)"
     echo ""
-    display_help
     exit 1
 fi
 

@@ -54,10 +54,10 @@ def _createOverlays():
     with open(path, "w") as fh:
         fh.write(parsed_template)
     logging.info("JavascriptFile has been created: "+path)
-def _createProjectHandling():
+def createProjectHandling():
     template = env.get_template('projectHandling.j2')
     #Delete Unused Static Files and getting List of available projects
-    if 'frontend' in cfg and 'cleanup' in cfg['frontend'] and not cfg['frontend']['cleanup']==False:
+    if 'frontend' in cfg and 'cleanup' in cfg['frontend'] and  cfg['frontend']['cleanup'] is not False:
         projects=utils.cleanupProjects([projectName])
     else:
         projects=utils.getFrontendDirs()
@@ -70,7 +70,7 @@ def _createProjectHandling():
 def finalizeMap():
     _createOverlays()
     _createLegend()
-    _createProjectHandling()
+    createProjectHandling()
     copy(cfg['frontend']['path']+'/src/index.html',cfg['frontend']['path']+'/projects/'+projectName+'/')
 
 
