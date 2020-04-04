@@ -79,8 +79,7 @@ def checkConnection(geoserver_url:str, user:str, password:str):
 ()
 def getFrontendDirs():
     for _r, dirs, _f in os.walk(cfg['frontend']['path']+'/projects/'):
-        print(dirs)
-    return dirs
+        return dirs
 
 def cleanupProjects(ignore):
     error,geoserver_url=checkConnection(cfg['geoserver']['url']+ "/rest/",cfg['geoserver']['user'],cfg['geoserver']['password'])
