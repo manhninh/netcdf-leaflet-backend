@@ -6,10 +6,11 @@ general:
         # - WindSpd
         # - T
         # - LatentHeatFlux
-    #projectName: mz1 #Only used when running without main.sh
     height_levels: [0.3,10.5,40.5]
-    #inputFile: ./inputFiles/MZ_Flow_2018-07-22_05.00.00-new.nc #Only used when running without main.sh
     removeOutputFiles: False #[optional]
+    #workdir: ".." #[DEBUG ONLY]]
+    #projectName: mz1 #[DEBUG ONLY]]
+    #inputFile: ./inputFiles/MZ_Flow_2018-07-22_05.00.00-new.nc #[DEBUG ONLY]]
 geoserver:
     url: http://localhost:8600/geoserver
     user: admin #password will be prompted in main.sh
