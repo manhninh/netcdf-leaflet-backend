@@ -64,13 +64,6 @@ r_set_wms_options=session.put(geoserver_url+'/services/wms/settings',
 
 # Delete old workspace and create new one
 if cat.get_workspace(workspace):
-    # logging.info("Deleting existing Workspace "+workspace)
-    # for layer in cat.get_layers():
-    #     if layer.resource.workspace.name==workspace:
-    #         cat.delete(layer)
-    # for style in cat.get_styles():
-    #     if style.workspace is not None and style.workspace==workspace:
-    #         cat.delete(style,recurse=True)
     if cat.get_store(projectName,workspace):
         cat.delete(cat.get_store(projectName,workspace=workspace),purge="all",recurse=True)
     cat.delete(cat.get_workspace(workspace),purge="all",recurse=True)
