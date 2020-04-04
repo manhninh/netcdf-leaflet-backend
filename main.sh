@@ -13,9 +13,9 @@ list() {
     python $path/scripts/list_projects.py
 }
 create() {
-    nInputFiles=$(ls -1 ./inputFiles/*.nc |  wc -l)
+    nInputFiles=$(ls -1q ./inputFiles/*.nc 2> /dev/null |  wc -l )
     if [ $nInputFiles -eq 0 ]; then
-        echo "Error: inputFiles Directory is empty"
+        echo "Error: inputFiles Directory does not contain .nc Files"
         exit 1
     fi
 
