@@ -18,7 +18,7 @@ from geoserver.catalog import Catalog
 
 
 
-def readConf():
+def _readConf():
     if 'CONFIGFILE' in os.environ:
         with open(os.environ['CONFIGFILE'], 'r') as ymlfile:
             cfg = yaml.safe_load(ymlfile)
@@ -54,7 +54,7 @@ def readConf():
         cfg['general']['logLevel']='INFO' # default config
     logging.getLogger().setLevel(cfg['general']['logLevel'])
     return cfg
-cfg=readConf()
+cfg=_readConf()
 
 def checkConnection(geoserver_url:str, user:str, password:str):
     session = requests.Session()
@@ -79,7 +79,8 @@ def checkConnection(geoserver_url:str, user:str, password:str):
 ()
 def getFrontendDirs():
     for _r, dirs, _f in os.walk(cfg['frontend']['path']+'/projects/'):
-        return dirs
+        print(dirs)
+    return dirs
 
 def cleanupProjects(ignore):
     error,geoserver_url=checkConnection(cfg['geoserver']['url']+ "/rest/",cfg['geoserver']['user'],cfg['geoserver']['password'])
