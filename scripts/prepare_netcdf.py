@@ -110,7 +110,7 @@ filename = cfg['general']['inputFile']
 try:
     ncin = Dataset(filename, 'r', format='NETCDF4')
 except:
-    logging.error(filename +"is not a valid NetCDF File")
+    logging.error(filename +" is not a valid NetCDF File")
     sys.exit(1)
 logging.info("Creating project "+projectName +" from "+inputFile)
 
