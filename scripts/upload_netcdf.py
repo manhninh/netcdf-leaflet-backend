@@ -111,7 +111,7 @@ for layer in layers:
         timeInfo = DimensionInfo("time", "true", "LIST", None, "ISO8601", None)
         coverage.metadata = ({'time': timeInfo})
         cat.save(coverage)
-if 'removeOutputFiles' in cfg['general'] and not cfg['general']['removeOutputFiles']==False:
+if 'removeOutputFiles' in cfg['general'] and  cfg['general']['removeOutputFiles'] is not False:
     shutil.rmtree(cfg['general']['workdir']+'/outputFiles/')
     logging.info("Deleted outputFiles")
 logging.info('App can be started at: '+cfg['frontend']['path']+'/projects/'+projectName+'/index.html')
