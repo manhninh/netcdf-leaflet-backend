@@ -135,8 +135,11 @@ heights = ncin.variables['GridsK']
 nlat = len(latitudes)
 nlon = len(longitudes)
 ntime = len(times)
-
-makeMap.createMap('-'.join([year,month,day]),timeString,ntime-1,int(times[0]*60),locationLat,locationLong)
+if ntime>1:
+    timeInterval=int((times[1]-times[0])*60) # Examine the timeInterval
+else:
+    timeInterval=60 #Just using some value to fix timeHandling
+makeMap.createMap('-'.join([year,month,day]),timeString,ntime-1,timeInterval,locationLat,locationLong)
 
 # open netCDF file to write
 if not os.path.isdir(cfg['general']['workdir']+'/outputFiles/'):
