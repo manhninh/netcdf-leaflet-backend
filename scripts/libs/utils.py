@@ -20,15 +20,16 @@ from geoserver.catalog import Catalog
 
 def _readConf():
     if 'CONFIGFILE' in os.environ:
-        with open(os.environ['CONFIGFILE'], 'r') as ymlfile:
-            cfg = yaml.safe_load(ymlfile)
-    else:
+        _cfgFile=os.environ['CONFIGFILE']
+    elif os.path.exists("./config.yml"):
         logging.warning("No ConfigFile specified (export CONFIGFILE), using default one")
-        if os.path.exists("./config.yml"):
-            cfg = yaml.safe_load("./config.yml")
-        else:
-            logging.error("Could not find Configfile")
-            sys.exit
+        _cfgFile="./config.yml"
+    else:
+        logging.error("Could not find Configfile")
+        sys.exit(1)
+    with open(_cfgFile, 'r') as ymlfile:
+        cfg = yaml.safe_load(ymlfile)
+
     if 'GEOSERVER_PASSWORD' in os.environ:
         cfg['geoserver']['password']=os.environ['GEOSERVER_PASSWORD']
     else:
