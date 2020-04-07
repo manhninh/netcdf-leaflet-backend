@@ -35,13 +35,13 @@ if error:
 cat=Catalog(geoserver_url, "admin", "geoserver")
 
 #Check if Config File is correct and NETCDF File existing
-if not os.path.exists(cfg['general']['workdir']+'/outputFiles/'+projectName+'.nc'):
-    logging.error('File '+cfg['general']['workdir']+'/outputFiles/'+projectName+'.nc does not exist')
+if not os.path.exists(cfg['general']['workdir']+'/outputFiles/'+projectName+'/'+projectName+'.nc'):
+    logging.error('File '+cfg['general']['workdir']+'/outputFiles/'+projectName+'/'+projectName+'.nc does not exist')
     sys.exit()
 
 headers_zip = {'content-type': 'application/zip'}
 headers_xml = {'content-type': 'text/xml'}
-netcdfFile=cfg['general']['workdir']+'/outputFiles/'+projectName+'.nc'
+netcdfFile=cfg['general']['workdir']+'/outputFiles/'+projectName+'/'+projectName+'.nc'
 
 
 def checkUpload():
@@ -57,7 +57,7 @@ def checkUpload():
             cat.reload()
             passedTime+=1
 
-#ensure AdvancedProjectionSetting is turned off (if not -> layers wont display layers correctly)
+#ensure AdvancedProjectionSetting is turned off (if not -> layers wont display layers correctly)???
 r_set_wms_options=session.put(geoserver_url+'/services/wms/settings',
     data='<wms><metadata><entry key="advancedProjectionHandling">false</entry></metadata></wms>',
     headers=headers_xml)
@@ -98,12 +98,16 @@ for layer in layers:
     if layer.resource.workspace.name==workspace:
         #GetStyleName
         layerName=layer.resource.name
-        #Set Stylename
-        layer.default_style=workspace+":"+layerName
 
-        #create New Style from prebuild XML File
-        f = open(cfg['general']['workdir']+'/outputFiles/styles/'+layerName+'.xml')
-        cat.create_style(layerName, f.read(),workspace=workspace)
+        #create New Style from prebuild XML Files
+        styleDir=cfg['general']['workdir']+'/outputFiles/'+projectName+'/styles/'
+        for _r, _d, files in os.walk(styleDir):
+            for f in files:
+                with open(styleDir+f,'r') as style:
+                    cat.create_style(f.rstrip('.xml'), style.read(),workspace=workspace,overwrite=True)
+            break
+        # Set Default Style (timeIndependend)
+        layer.default_style=workspace+":"+layerName
         cat.save(layer)
         #get coverage to activate time Dimension
         from geoserver.support import DimensionInfo
@@ -112,7 +116,7 @@ for layer in layers:
         coverage.metadata = ({'time': timeInfo})
         cat.save(coverage)
 if 'removeOutputFiles' in cfg['general'] and  cfg['general']['removeOutputFiles'] is not False:
-    shutil.rmtree(cfg['general']['workdir']+'/outputFiles/')
+    shutil.rmtree(cfg['general']['workdir']+'/outputFiles/'+projectName+'/')
     logging.info("Deleted outputFiles")
 logging.info('App can be started at: '+cfg['frontend']['path']+'/projects/'+projectName+'/index.html')
 

@@ -19,6 +19,7 @@ from netCDF4 import Dataset,Variable
 import numpy as np
 import sys, math, os,logging
 from libs import utils, makeMap
+from pathlib import Path
 
 cfg=utils.cfg
 
@@ -49,7 +50,8 @@ def createVars():
         if var_name in ncin.variables:
             vin = ncin.variables[var_name]
             data={}
-            var_name=var_name.replace('.','_') 
+            var_name=var_name.replace('.','_')
+            # Variables without Height Dimension 
             if  len(vin.dimensions)==3: 
                 makeMap.addOverlay(vin.name,vin.long_name,False)
                 fill_val=vin._FillValue if hasattr(vin, '_FillValue') else 999
@@ -58,11 +60,19 @@ def createVars():
                 data[var_name][:]=vin[:]
                 data[var_name][:]=data[var_name][:,::-1]
                 data[var_name].setncattr('grid_mapping', 'crs')
+                # Create Layer
+                makeMap.addLayer(l_name=vin.name,l_mappingName=vin.long_name)
+                # Default Style
+                vin_min = float(data[vin.name][:][:].min())
+                vin_max = float(data[vin.name][:][:].max())
+                makeMap.createStyle(s_name=vin.name,longName=vin.long_name,minValue=vin_min,maxValue=vin_max,unit=vin.units)
+                #Timedependent Styles
+                for i in range(ntime):
+                    vin_min = float(data[var_name][i][:].min())
+                    vin_max = float(data[var_name][i][:].max())
+                    makeMap.createStyle(s_name=vin.name+str(i),longName=vin.long_name,minValue=vin_min,maxValue=vin_max,unit=vin.units,index=i)
 
-                vin_min = float(data[var_name][:][:].min())
-                vin_max = float(data[var_name][:][:].max())
-                makeMap.addLayer(l_name=vin.name,l_mappingName=vin.long_name,minValue=vin_min,maxValue=vin_max,unit=vin.units)
-
+            #Variables with Height Dimension
             elif len(vin.dimensions)==4 and vin.dimensions[1]==dimZName:
                 makeMap.addOverlay(vin.name,vin.long_name,True)
                 for h in heightlevels:
@@ -75,12 +85,18 @@ def createVars():
                     data[var_height_name][:]=np.array(vin)[:,heightIndex,:,:] #Getting slice of array by height index
                     data[var_height_name][:]=data[var_height_name][:,::-1]
                     data[var_height_name].setncattr('grid_mapping', 'crs')
-                    
-                    heightString=str(h)+' Meter'
+                    # Create HeightLayer
+                    makeMap.addHeightLayer(var_height_name,h,vin.long_name)
+                    # Default Style
                     vin_min = float(data[var_height_name][:][:].min())
                     vin_max = float(data[var_height_name][:][:].max())
-                    makeMap.addHeightLayer(var_height_name,heightString,vin.long_name,minValue=vin_min,maxValue=vin_max,unit=vin.units)
-                    makeMap.addHeight(str(h).replace('.',''),heightString)
+                    makeMap.createStyle(s_name=var_height_name,longName=vin.long_name,minValue=vin_min,maxValue=vin_max,unit=vin.units)
+                    #Timedependent Styles
+                    for i in range(ntime):
+                        vin_min = float(data[var_height_name][i][:].min())
+                        vin_max = float(data[var_height_name][i][:].max())
+                        makeMap.createStyle(s_name=var_height_name+str(i),longName=vin.long_name,minValue=vin_min,maxValue=vin_max,unit=vin.units,h=h,index=i)
+
             else:
                 logging.warning('Variable '+ var_name + ' has no valid dimensions')
         else:
@@ -139,12 +155,12 @@ if ntime>1:
     timeInterval=int((times[1]-times[0])*60) # Examine the timeInterval
 else:
     timeInterval=60 #Just using some value to fix timeHandling
-makeMap.createMap('-'.join([year,month,day]),timeString,ntime-1,timeInterval,locationLat,locationLong)
+makeMap.initMap('-'.join([year,month,day]),timeString,ntime,timeInterval,locationLat,locationLong)
 
 # open netCDF file to write
-if not os.path.isdir(cfg['general']['workdir']+'/outputFiles/'):
-    os.mkdir(cfg['general']['workdir']+'/outputFiles/')
-ncout = Dataset(cfg['general']['workdir']+'/outputFiles/'+ projectName +'.nc', 'w', format='NETCDF4')
+if not os.path.isdir(cfg['general']['workdir']+'/outputFiles/'+projectName+'/'):
+    Path(cfg['general']['workdir']+'/outputFiles/'+projectName+'/').mkdir(parents=True,exist_ok=True)
+ncout = Dataset(cfg['general']['workdir']+'/outputFiles/'+projectName+'/'+ projectName +'.nc', 'w', format='NETCDF4')
 
 
 add_manual_grid_mapping()

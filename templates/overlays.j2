@@ -11,7 +11,7 @@ function getWMSOptions(layerName){
 
 {% for layer in layers %}
     var {{ layer.name }}Layer = L.tileLayer.betterWms(WMS_URL, getWMSOptions('{{layer.name}}'));
-    var {{ layer.name }}TimeLayer = L.timeDimension.layer.wms({{ layer.name }}Layer,timeOptions)
+    var {{ layer.name }}TimeLayer = L.timeDimension.layer.customWMS({{ layer.name }}Layer,timeOptions)
 {% endfor %}
 
 //Prepare Controls

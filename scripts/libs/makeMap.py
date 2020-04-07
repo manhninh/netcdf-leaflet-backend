@@ -17,12 +17,12 @@ cfg=utils.cfg
 projectName=cfg['general']['projectName']
 workspaceName=projectName
 
-def createMap(SimDate,SimTime,SimDurationMinus1,TimeInterval,Latitude,Longitude):
+def initMap(SimDate,SimTime,SimDuration,TimeInterval,Latitude,Longitude):
     #Create ProjectFolder
     if not os.path.isdir(cfg['frontend']['path']+'/projects/'+projectName+'/'):
         pathlib.Path(cfg['frontend']['path']+'/projects/'+projectName+'/').mkdir(parents=True,exist_ok=True)
     template = env.get_template('utils.j2')
-    parsed_template=template.render(SimDate=SimDate,SimTime=SimTime,SimDurationMinus1=SimDurationMinus1,TimeInterval=TimeInterval,Latitude=Latitude,Longitude=Longitude)
+    parsed_template=template.render(SimDate=SimDate,SimTime=SimTime,SimDurationMinus1=(SimDuration-1),TimeInterval=TimeInterval,Latitude=Latitude,Longitude=Longitude)
     path =cfg['frontend']['path']+'/projects/'+projectName+"/utils.js"
     with open(path, "w") as fh:
         fh.write(parsed_template)
@@ -32,17 +32,22 @@ def addOverlay(o_name,o_longname,hasHeights):
     o_objectName ='L.marker([0,0])' if hasHeights else o_name+'Layer'
     overlays.append({"longname":o_longname,"objectName":o_objectName})
 
-def addHeight(h_name,h_longname):
-    heights.append({"name":h_name,"longname":h_longname})
+def createStyle(s_name,minValue,maxValue,longName,unit,h=None,index=""):
+    # Generate Style and prepareLegendControl
+    if h:
+        layerMappingName=longName+'-'+str(h)+' Meter'+'-'+str(index)
+    else:
+        layerMappingName=longName+str(index)
+    styles.createStyle(s_name,minValue,maxValue,layerMappingName,unit)
 
-def addLayer(l_name,l_mappingName,minValue,maxValue,unit):
+def addLayer(l_name,l_mappingName):
     l_MappingName =l_mappingName if l_mappingName!="" else l_name
-    layers.append({"name":l_name,"mappingName":l_MappingName})
-    #Generate Style and prepareLegendControl
-    styles.createStyle(l_name,minValue,maxValue,l_MappingName,unit)
+    layers.append({"name":l_name,"mappingName":l_MappingName}) 
 
-def addHeightLayer(l_name,l_height,l_longName,minValue,maxValue,unit):
-    addLayer(l_name,l_longName+'-'+l_height,minValue,maxValue,unit)
+def addHeightLayer(l_name,h,l_longName):
+    heightstring=str(h)+' Meter'
+    addLayer(l_name,l_longName+'-'+heightstring)
+    heights.append({"name":(str(h).replace('.','')),"longname":heightstring})
 
 def _createLegend():
     styles.createLegend()

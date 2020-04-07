@@ -1,5 +1,6 @@
 from jinja2 import Environment, PackageLoader, select_autoescape
 import sys,logging,os
+from string import digits
 from . import utils
 
 cfg =utils.cfg
@@ -27,13 +28,13 @@ def _createColorMapping(colors,values):
         colorMapping.append({"color":colors[i],"value":values[i]})
     return colorMapping
 def createStyle(styleName,minValue,maxValue,layerMappingName,unit):
-
+    varName=styleName.rstrip(digits)
     #Check if Style has own description in Config
-    if styleName in cfg['styles']['customStyles']:
-        colors=cfg['styles']['customStyles'][styleName]['colors']
+    if varName in cfg['styles']['customStyles']:
+        colors=cfg['styles']['customStyles'][varName]['colors']
         #Check if Style has custom Values
-        if "values" in cfg['styles']['customStyles'][styleName]:
-            values=cfg['styles']['customStyles'][styleName]['values']
+        if "values" in cfg['styles']['customStyles'][varName]:
+            values=cfg['styles']['customStyles'][varName]['values']
         else:
             values=_generateValues(styles,minValue,maxValue,len(colors))
     #Use Default Styleconfig
@@ -51,9 +52,9 @@ def createStyle(styleName,minValue,maxValue,layerMappingName,unit):
     colorMapping=_createColorMapping(colors,values)
     #create SLD Style which is used by Geoserver
     parsed_template=template.render(styleName=styleName,colorMapping=colorMapping)
-    if not os.path.isdir(cfg['general']['workdir']+'/outputFiles/styles/'):
-        os.mkdir(cfg['general']['workdir']+'/outputFiles/styles/')
-    with open(cfg['general']['workdir']+'/outputFiles/styles/'+styleName+'.xml', "w") as fh:
+    if not os.path.isdir(cfg['general']['workdir']+'/outputFiles/'+projectName+'/styles/'):
+        os.mkdir(cfg['general']['workdir']+'/outputFiles/'+projectName+'/styles/')
+    with open(cfg['general']['workdir']+'/outputFiles/'+projectName+'/styles/'+styleName+'.xml', "w") as fh:
         fh.write(parsed_template)
 
 
