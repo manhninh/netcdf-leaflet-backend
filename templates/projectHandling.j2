@@ -1,7 +1,7 @@
 
 var projectHandling ='\
 <h2>Options:</h2>\
-<b>Time-Dependent Styles: <input id="dynamicStyles" type="checkbox" checked></b>\
+<b>Time-Dependent Styles: <input id="dynamicStyles" type="checkbox" onchange="styleHandlingChanged()" checked></b>\
 <h2>Available Projects:</h2>\
   <div class="sidenav">\
     {% for project in projects %}   <a href="../../projects/{{project}}/index.html">{{project}}</a>\
