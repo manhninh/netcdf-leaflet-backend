@@ -15,8 +15,11 @@ var legend = L.control({position: 'bottomright'});
 
 var legendName=null
 
-function addLegend (map,legendName){
-    this.legendName=legendName;
+function addLegend (map,layer){
+    if (document.getElementById("dynamicStyles").checked)
+        this.legendName=layer+map.timeDimension.getCurrentTimeIndex();
+    else
+        this.legendName=layer
     legend.addTo(map);
     };
 function removeLegend (){
