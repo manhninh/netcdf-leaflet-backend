@@ -90,7 +90,7 @@ def createVars():
                     # Default Style
                     vin_min = float(data[var_height_name][:][:].min())
                     vin_max = float(data[var_height_name][:][:].max())
-                    makeMap.createStyle(s_name=var_height_name,longName=vin.long_name,minValue=vin_min,maxValue=vin_max,unit=vin.units)
+                    makeMap.createStyle(s_name=var_height_name,longName=vin.long_name,minValue=vin_min,maxValue=vin_max,unit=vin.units,h=h)
                     #Timedependent Styles
                     for i in range(ntime):
                         vin_min = float(data[var_height_name][i][:].min())

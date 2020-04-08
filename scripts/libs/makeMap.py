@@ -35,7 +35,7 @@ def addOverlay(o_name,o_longname,hasHeights):
 def createStyle(s_name,minValue,maxValue,longName,unit,h=None,index=""):
     # Generate Style and prepareLegendControl
     if h:
-        layerMappingName=longName+'-'+str(h)+' Meter'+'-'+str(index)
+        layerMappingName=longName+'-'+str(h)+' Meter'+str(index)
     else:
         layerMappingName=longName+str(index)
     styles.createStyle(s_name,minValue,maxValue,layerMappingName,unit)
