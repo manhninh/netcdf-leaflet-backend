@@ -26,7 +26,7 @@ def initMap(SimDate,SimTime,SimDuration,TimeInterval,Latitude,Longitude):
     path =cfg['frontend']['path']+'/projects/'+projectName+"/utils.js"
     with open(path, "w") as fh:
         fh.write(parsed_template)
-    logging.info("JavascriptFile has been created: "+path)
+    logging.debug("JavascriptFile has been created: "+path)
 
 def addOverlay(o_name,o_longname,hasHeights):
     o_objectName ='L.marker([0,0])' if hasHeights else o_name+'Layer'
@@ -58,7 +58,7 @@ def _createOverlays():
     path=cfg['frontend']['path']+'/projects/'+projectName+'/overlays.js'
     with open(path, "w") as fh:
         fh.write(parsed_template)
-    logging.info("JavascriptFile has been created: "+path)
+    logging.debug("JavascriptFile has been created: "+path)
 def createProjectHandling():
     template = env.get_template('projectHandling.j2')
     #Delete Unused Static Files and getting List of available projects
@@ -70,7 +70,7 @@ def createProjectHandling():
     path=cfg['frontend']['path']+'/projects/projectHandling.js'
     with open(path, "w") as fh:
         fh.write(parsed_template)
-    logging.info("JavascriptFile has been created: "+path)
+    logging.debug("JavascriptFile has been created: "+path)
 
 def finalizeMap():
     _createOverlays()

@@ -65,5 +65,5 @@ def createLegend():
     path =cfg['frontend']['path']+"/projects/"+projectName+"/legend.js"
     with open(path, "w") as fh:
         fh.write(parsed_template)
-    logging.info("JavascriptFile has been created: "+path)
+    logging.debug("JavascriptFile has been created: "+path)
     
