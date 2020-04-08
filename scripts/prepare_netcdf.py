@@ -3,13 +3,8 @@
 #=======================================================================
 # name: prepare_netcdf.py
 #
-# category: python script
-# Part 1
 # description:
 #   Reads EnviMet NetCDF and write a geoserver compatible netCDF file
-#
-# reference:
-#   http://unidata.github.io/netcdf4-python/
 #
 # author: Elias Borngässer
 #=======================================================================

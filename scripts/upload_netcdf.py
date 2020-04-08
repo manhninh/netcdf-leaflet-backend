@@ -3,7 +3,9 @@
 #=======================================================================
 # name: upload_netcdf.py
 #
-# category: python script
+# description:
+#   Delete Old Workspace
+#   Upload prepared NetCDF File and Styles
 #
 # author: Elias Borngässer
 #=======================================================================

@@ -1,3 +1,13 @@
+#!/usr/local/bin/python3
+# -*- coding: utf-8 -*-
+#=======================================================================
+# name: makeMap.py
+#
+# description:
+#   Handles frontend creation
+#
+# author: Elias Borngässer
+#=======================================================================
 from jinja2 import Environment, PackageLoader, select_autoescape
 import sys,os
 from shutil import copy

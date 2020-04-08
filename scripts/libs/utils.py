@@ -3,8 +3,6 @@
 #=======================================================================
 # name: utils.py
 #
-# category: python script
-# Part 1
 # description:
 #   General methods used in main scripts
 #

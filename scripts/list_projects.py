@@ -3,8 +3,6 @@
 #=======================================================================
 # name: list_project.py
 #
-# category: python script
-# Part 1
 # description:
 #   List Project Folder and Workspaces in Geoserver
 #

@@ -3,8 +3,6 @@
 #=======================================================================
 # name: delete_project.py
 #
-# category: python script
-# Part 1
 # description:
 #   Delete Project Folder and Workspace in Geoserver
 #

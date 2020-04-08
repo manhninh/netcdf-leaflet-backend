@@ -1,3 +1,13 @@
+#!/usr/local/bin/python3
+# -*- coding: utf-8 -*-
+#=======================================================================
+# name: styles.py
+#
+# description:
+#   Handles style and legend creation
+#
+# author: Elias Borngässer
+#=======================================================================
 from jinja2 import Environment, PackageLoader, select_autoescape
 import sys,logging,os
 from string import digits
