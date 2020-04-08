@@ -49,7 +49,7 @@ def checkUpload():
     while True:
         if cat.get_store(projectName,workspace=workspace):
             for layer in cat.get_layers():
-                if layer.resource.workspace.name==workspace:
+                if layer.name.startswith(workspace):
                     time.sleep(1)
                     return True
         elif (passedTime>uploadTimeOut):
@@ -71,7 +71,7 @@ if cat.get_workspace(workspace):
         cat.delete(cat.get_store(projectName,workspace=workspace),purge="all",recurse=True)
     cat.delete(cat.get_workspace(workspace),purge="all",recurse=True)
     for layer in cat.get_layers():
-        if layer.resource.workspace.name==workspace:
+        if layer.name.startswith(workspace):
             cat.delete(layer,recurse=True)
 cat.create_workspace(workspace,geoserver_url+'/'+workspace)
 
@@ -110,7 +110,7 @@ for _r, _d, files in os.walk(styleDir):
 layers= cat.get_layers()
 for layer in layers:
    # if layer.dom is not None:
-        if layer.resource.workspace.name==workspace:
+        if layer.name.startswith(workspace):
             #GetStyleName
             layerName=layer.resource.name
             # Set Default Style (timeIndependend)
