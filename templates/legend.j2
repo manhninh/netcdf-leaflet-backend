@@ -32,6 +32,10 @@ legend.onAdd = function (map) {
     var div = L.DomUtil.create('div', 'info legend'),
         grades = legendObject.values,
         colors = legendObject.colors;
+    if (legendName.match(".*\\d+$")){
+        _date =new Date(map.timeDimension.getCurrentTime())
+        _timeString= _date.toLocaleDateString() + ' '+_date.toLocaleTimeString()
+        legendName=legendName.replace(/\d+$/, "")+' at '+ _timeString
 
     // loop through our density intervals and generate a label with a colored square for each interval
     div.innerHTML='<h4>'+legendName+'</h4>'
