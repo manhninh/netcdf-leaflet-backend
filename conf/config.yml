@@ -6,7 +6,7 @@ general:
         # - WindSpd
         # - T
         # - LatentHeatFlux
-    height_levels: [0.3,10.5,40.5]
+    height_levels: [0.3,10.5,40.5] # Could be Integer or Array(to specify specific, existing! HeightLevels)
     removeOutputFiles: False #[optional]
     #workdir: ".." #[DEBUG ONLY]]
     #projectName: mz1 #[DEBUG ONLY]]
