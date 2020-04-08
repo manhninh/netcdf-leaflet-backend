@@ -48,7 +48,9 @@ def checkUpload():
     passedTime=0
     while True:
         if cat.get_store(projectName,workspace=workspace):
-            return
+            for layer in cat.get_layers():
+                if layer.resource.workspace.name==workspace:
+                    return True
         elif (passedTime>uploadTimeOut):
             logging.error('TIMEOUT: Failed to upload NetCDF File')
             exit(1)
@@ -85,30 +87,30 @@ with open(output.filename, 'rb') as zip_file:
     r_create_layer = session.put(geoserver_url+'/workspaces/' + workspace  + '/coveragestores/' + projectName  + '/file.netcdf',
         data=zip_file,
         headers=headers_zip)
-if r_create_layer.status_code==201:
+
+#Wait until CoverageStore has been created
+if r_create_layer.status_code==201 and checkUpload():
     logging.info('Succecssfully uploaded Zipfile')
 else:
     logging.error('Failed to upload NetCDF File')
     exit(1)
 os.remove(output.filename)
 
-#Wait until CoverageStore has been created
-checkUpload()
-#assign styles to created layers
-layers= cat.get_layers()
+#create New Styles from prebuild XML Files
+styleDir=cfg['general']['workdir']+'/outputFiles/'+projectName+'/styles/'
+for _r, _d, files in os.walk(styleDir):
+    logging.info("Uploading "+str(len(files)) +" styles")
+    for f in files:
+        with open(styleDir+f,'r') as style:
+            cat.create_style(f.rstrip('.xml'), style.read(),workspace=workspace,overwrite=True)
+    break
 
+#assign styles to created layers and enable timeDimension
+layers= cat.get_layers()
 for layer in layers:
     if layer.resource.workspace.name==workspace:
         #GetStyleName
         layerName=layer.resource.name
-
-        #create New Style from prebuild XML Files
-        styleDir=cfg['general']['workdir']+'/outputFiles/'+projectName+'/styles/'
-        for _r, _d, files in os.walk(styleDir):
-            for f in files:
-                with open(styleDir+f,'r') as style:
-                    cat.create_style(f.rstrip('.xml'), style.read(),workspace=workspace,overwrite=True)
-            break
         # Set Default Style (timeIndependend)
         layer.default_style=workspace+":"+layerName
         cat.save(layer)
