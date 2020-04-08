@@ -14,7 +14,7 @@ import requests
 from libs import utils
 import sys, os, shutil
 import logging
-from geoserver.catalog import Catalog
+from geoserver.catalog import Catalog,Layer
 import time
 
 #get config variables
@@ -67,6 +67,9 @@ if cat.get_workspace(workspace):
     if cat.get_store(projectName,workspace):
         cat.delete(cat.get_store(projectName,workspace=workspace),purge="all",recurse=True)
     cat.delete(cat.get_workspace(workspace),purge="all",recurse=True)
+    for layer in cat.get_layers():
+        if isinstance(layer,Layer) or layer.resource.workspace.name==workspace:
+            cat.delete(layer,recurse=True)
 cat.create_workspace(workspace,geoserver_url+'/'+workspace)
 
 # zip the ncFile
@@ -95,7 +98,7 @@ checkUpload()
 layers= cat.get_layers()
 
 for layer in layers:
-    if layer.resource.workspace.name==workspace:
+    if isinstance(layer,Layer) and layer.resource.workspace.name==workspace:
         #GetStyleName
         layerName=layer.resource.name
 
