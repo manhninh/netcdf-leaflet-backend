@@ -68,7 +68,7 @@ if cat.get_workspace(workspace):
         cat.delete(cat.get_store(projectName,workspace=workspace),purge="all",recurse=True)
     cat.delete(cat.get_workspace(workspace),purge="all",recurse=True)
     for layer in cat.get_layers():
-        if isinstance(layer,Layer) or layer.resource.workspace.name==workspace:
+        if not isinstance(layer,Layer) or layer.resource.workspace.name==workspace:
             cat.delete(layer,recurse=True)
 cat.create_workspace(workspace,geoserver_url+'/'+workspace)
 
@@ -98,7 +98,7 @@ checkUpload()
 layers= cat.get_layers()
 
 for layer in layers:
-    if isinstance(layer,Layer) and layer.resource.workspace.name==workspace:
+    if layer.resource.workspace.name==workspace:
         #GetStyleName
         layerName=layer.resource.name
 
