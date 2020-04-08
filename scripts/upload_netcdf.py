@@ -50,6 +50,7 @@ def checkUpload():
         if cat.get_store(projectName,workspace=workspace):
             for layer in cat.get_layers():
                 if layer.resource.workspace.name==workspace:
+                    time.sleep(1)
                     return True
         elif (passedTime>uploadTimeOut):
             logging.error('TIMEOUT: Failed to upload NetCDF File')
@@ -70,7 +71,7 @@ if cat.get_workspace(workspace):
         cat.delete(cat.get_store(projectName,workspace=workspace),purge="all",recurse=True)
     cat.delete(cat.get_workspace(workspace),purge="all",recurse=True)
     for layer in cat.get_layers():
-        if not isinstance(layer,Layer) or layer.resource.workspace.name==workspace:
+        if layer.resource.workspace.name==workspace:
             cat.delete(layer,recurse=True)
 cat.create_workspace(workspace,geoserver_url+'/'+workspace)
 
@@ -108,18 +109,19 @@ for _r, _d, files in os.walk(styleDir):
 #assign styles to created layers and enable timeDimension
 layers= cat.get_layers()
 for layer in layers:
-    if layer.resource.workspace.name==workspace:
-        #GetStyleName
-        layerName=layer.resource.name
-        # Set Default Style (timeIndependend)
-        layer.default_style=workspace+":"+layerName
-        cat.save(layer)
-        #get coverage to activate time Dimension
-        from geoserver.support import DimensionInfo
-        coverage = cat.get_resource(layerName,projectName,workspace=workspace)
-        timeInfo = DimensionInfo("time", "true", "LIST", None, "ISO8601", None)
-        coverage.metadata = ({'time': timeInfo})
-        cat.save(coverage)
+   # if layer.dom is not None:
+        if layer.resource.workspace.name==workspace:
+            #GetStyleName
+            layerName=layer.resource.name
+            # Set Default Style (timeIndependend)
+            layer.default_style=workspace+":"+layerName
+            cat.save(layer)
+            #get coverage to activate time Dimension
+            from geoserver.support import DimensionInfo
+            coverage = cat.get_resource(layerName,projectName,workspace=workspace)
+            timeInfo = DimensionInfo("time", "true", "LIST", None, "ISO8601", None)
+            coverage.metadata = ({'time': timeInfo})
+            cat.save(coverage)
 if 'removeOutputFiles' in cfg['general'] and  cfg['general']['removeOutputFiles'] is not False:
     shutil.rmtree(cfg['general']['workdir']+'/outputFiles/'+projectName+'/')
     logging.info("Deleted outputFiles")
