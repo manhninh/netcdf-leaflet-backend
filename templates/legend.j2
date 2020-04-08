@@ -1,10 +1,5 @@
 
-{% for style in styles %}
-    var {{ style.name }}Legend = { 
-        "colors": [{% for color in style["colors"] %} "{{ color }}",{% endfor %}],
-        "values": [{% for value in style["values"] %} "{{ value }}",{% endfor %}],
-        "unit": "{{ style.unit }}",
-    };
+{% for style in styles %} var {{ style.name }}Legend = { "colors": [{% for color in style["colors"] %} "{{ color }}",{% endfor %}], "values": [{% for value in style["values"] %} "{{ value }}",{% endfor %}], "unit": "{{ style.unit }}",};
 {% endfor %}
 
 let legendMapping = new Map();
@@ -36,6 +31,7 @@ legend.onAdd = function (map) {
         _date =new Date(map.timeDimension.getCurrentTime())
         _timeString= _date.toLocaleDateString() + ' '+_date.toLocaleTimeString()
         legendName=legendName.replace(/\d+$/, "")+' at '+ _timeString
+    }
 
     // loop through our density intervals and generate a label with a colored square for each interval
     div.innerHTML='<h4>'+legendName+'</h4>'
