@@ -39,9 +39,9 @@ create() {
                 export PROJECTNAME=${projects[0]}$((i+1))
             fi
         fi
-        valid="A-Za-z0-9._-"
+        valid="A-Za-z0-9.-"
         if [[ ! $PROJECTNAME =~ ^[$valid]+$ ]]; then
-            echo "Error: Invalid ProjectName $PROJECTNAME , $f will be skipped"
+            echo "Error: Invalid ProjectName $PROJECTNAME , has to match \"$valid\", $f will be skipped"
             continue
         fi
         ((i++))
