@@ -118,7 +118,7 @@ def add_global_attrs():
 
 attributes=cfg['general']['attributes_to_read']
 projectName=cfg['general']['projectName']
-heightlevels=cfg['general']['height_levels']
+
 inputFile=cfg['general']['inputFile']
 
 # open a netCDF file to read
@@ -151,6 +151,15 @@ heights = ncin.variables['GridsK']
 nlat = len(latitudes)
 nlon = len(longitudes)
 ntime = len(times)
+nheight =len(heights)
+
+heightlevels=cfg['general']['height_levels']
+if isinstance(heightlevels,int):
+    if nheight<heightlevels:
+        logging.warn("File "+inputFile+" only has "+str(nheight) +" Levels, will only use those")
+        heightlevels=heights[:nheight]
+    heightlevels=heights[:heightlevels]
+    
 if ntime>1:
     timeInterval=int((times[1]-times[0])*60) # Examine the timeInterval
 else:
