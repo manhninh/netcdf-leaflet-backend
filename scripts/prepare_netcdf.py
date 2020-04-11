@@ -10,10 +10,9 @@
 #=======================================================================
 
 from netCDF4 import Dataset,Variable
-#from pylab import *
 import numpy as np
 import sys, math, os,logging
-from libs import utils, makeMap
+from libs import utils, makeMap, DEM
 from pathlib import Path
 
 cfg=utils.cfg
@@ -21,6 +20,7 @@ cfg=utils.cfg
 dimXName='GridsI'
 dimYName='GridsJ'
 dimZName='GridsK'
+dimTName='Time'
 
 def createDimensions():
     for d in ncin.dimensions:
@@ -28,6 +28,8 @@ def createDimensions():
         ncout.createDimension(d,dimVar.size)
         data=ncout.createVariable(d,np.dtype('double').char,(d))
         add_attributes(dimVar,data)
+        if d==dimTName:
+            data.units="Hours since {}-{}-{} {}".format(year,month,day,timeString)
         if d== dimYName:
             data[:]=dimVar[::-1]
         else:
@@ -41,6 +43,16 @@ def add_attributes(vin:Variable,data:Variable):
     return data
 
 def createVars():
+    isDEM =False
+    varDEMOFFSet=None
+    maxDEMOffset=0
+    emptyArray=None
+    if 'DEMOffset' in  ncin.variables:
+        maxDEMOffset=int(ncin.variables["DEMOffset"][:][:].max())
+        isDEM= True if maxDEMOffset>0 else False
+        varDEMOFFSet=ncin.variables["DEMOffset"][:]
+        emptyArray=np.empty_like(ncin.variables["DEMOffset"])
+    logging.debug("Is DEMFile: "+str(isDEM))
     for var_name in attributes:
         if var_name in ncin.variables:
             vin = ncin.variables[var_name]
@@ -50,10 +62,9 @@ def createVars():
             if  len(vin.dimensions)==3: 
                 makeMap.addOverlay(vin.name,vin.long_name,False)
                 fill_val=vin._FillValue if hasattr(vin, '_FillValue') else 999
-                data[var_name] =ncout.createVariable(var_name,np.dtype('double').char,('Time',dimYName,dimXName,),fill_value=fill_val)
+                data[var_name] =ncout.createVariable(var_name,np.dtype('double').char,(dimTName,dimYName,dimXName,),fill_value=fill_val)
                 data[var_name] =add_attributes(vin,data[var_name])
-                data[var_name][:]=vin[:]
-                data[var_name][:]=data[var_name][:,::-1]
+                data[var_name][:]=vin[:,::-1]# flipping vertical axis for correct visualization
                 data[var_name].setncattr('grid_mapping', 'crs')
                 # Create Layer
                 makeMap.addLayer(l_name=vin.name,l_mappingName=vin.long_name)
@@ -71,14 +82,21 @@ def createVars():
             elif len(vin.dimensions)==4 and vin.dimensions[1]==dimZName:
                 makeMap.addOverlay(vin.name,vin.long_name,True)
                 for h in heightlevels:
+                    heightIndex=int(np.where(np.array(heights)==h)[0]) #find height by value (MUST BE UNIQUE)
+                    if isDEM and maxDEMOffset+heightIndex>nheight:
+                        logging.warning("Will skip heightLevel "+ h +" cause of max DEMOffset Value "+maxDEMOffset)
+                        continue
                     var_height_name=var_name+str(h).replace('.','')# adding height value to var name
                     fill_val=vin._FillValue if hasattr(vin, '_FillValue') else 999
-                    data[var_height_name] =ncout.createVariable(var_height_name,np.dtype('double').char,('Time',dimYName,dimXName,),fill_value=fill_val)
+                    data[var_height_name] =ncout.createVariable(var_height_name,np.dtype('double').char,(dimTName,dimYName,dimXName,),fill_value=fill_val)
                     data[var_height_name] =add_attributes(vin,data[var_height_name])
                     data[var_height_name].setncattr('height', h)    
-                    heightIndex=np.where(np.array(heights)==h) #find height by value
-                    data[var_height_name][:]=np.array(vin)[:,heightIndex,:,:] #Getting slice of array by height index
-                    data[var_height_name][:]=data[var_height_name][:,::-1]
+
+                    if isDEM:
+                        data[var_height_name][:]=DEM.getDEMArray(emptyArray,vin[:],varDEMOFFSet,heightIndex)
+                    else:
+                        data[var_height_name][:]=np.array(vin)[:,heightIndex,:,:] #Getting slice of array by height index
+                    data[var_height_name][:]=data[var_height_name][:,::-1] 
                     data[var_height_name].setncattr('grid_mapping', 'crs')
                     # Create HeightLayer
                     makeMap.addHeightLayer(var_height_name,h,vin.long_name)
@@ -102,9 +120,6 @@ def add_manual_grid_mapping():
     data['crs'] =ncout.createVariable('crs',np.dtype('c').char)
     utils.addGridMappingVars(data['crs'],locationLat,locationLong,rotation)
 
-def add_global_attrs():
-    data={}
-    data['global_attribute'] =ncout.createVariable('global_attribute',np.dtype('c').char)
 
 #-----------------
 # read netCDF file
@@ -137,10 +152,10 @@ timeString =str(ncin.getncattr('SimulationTime').replace('.',':'))
 
 
 # get axis data
-times = ncin.variables['Time']
-latitudes = ncin.variables['GridsJ']
-longitudes = ncin.variables['GridsI']
-heights = ncin.variables['GridsK']
+times = ncin.variables[dimTName]
+latitudes = ncin.variables[dimYName]
+longitudes = ncin.variables[dimXName]
+heights = ncin.variables[dimZName]
 
 # get length of axis data
 nlat = len(latitudes)
@@ -151,7 +166,7 @@ nheight =len(heights)
 heightlevels=cfg['general']['height_levels']
 if isinstance(heightlevels,int):
     if nheight<heightlevels:
-        logging.warn("File "+inputFile+" only has "+str(nheight) +" Levels, will only use those")
+        logging.warning("File "+inputFile+" only has "+str(nheight) +" Levels, will only use those")
         heightlevels=heights[:nheight]
     heightlevels=heights[:heightlevels]
     
