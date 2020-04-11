@@ -17,6 +17,6 @@ def getDEMArray(emptyArray,var,varDEMOFFSet,hIndex:int):
         for y in range(len(var[t][hIndex][:])):
             for x in range(len(var[t][hIndex][y][:])):
                 demOffset=int(varDEMOFFSet[t][y][x]) # Determine DEMOffset for specific cell
-                if isinstance( var[t][hIndex+demOffset][y][x],np.float32): #exclude NaN Values
+                if not isinstance( var[t][hIndex+demOffset][y][x],np.ma.core.MaskedConstant): #exclude NaN Values
                     DEMArray[t][y][x]=var[t][hIndex+demOffset][y][x]
     return DEMArray
