@@ -40,6 +40,8 @@ def _readConf():
         cfg['general']['inputFile']=os.environ['INPUTFILE']
 
     # Optional Vars
+    if not 'nDigits' in cfg['styles']:
+        cfg['styles']['nDigits']=2 
     if not 'workdir' in cfg['general']:
         cfg['general']['workdir']='.' # default config
     if not 'frontend' in cfg or not 'path' in cfg['frontend']:
