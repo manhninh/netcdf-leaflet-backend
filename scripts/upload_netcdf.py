@@ -101,11 +101,14 @@ os.remove(output.filename)
 
 #create New Styles from prebuild XML Files
 styleDir=cfg['general']['workdir']+'/outputFiles/'+projectName+'/styles/'
+styles=[]
 for _r, _d, files in os.walk(styleDir):
     logging.info("Uploading "+str(len(files)) +" styles")
     for f in files:
         with open(styleDir+f,'r') as style:
-            cat.create_style(f.rstrip('.xml'), style.read(),workspace=workspace,overwrite=True)
+            styleName=f.rstrip('.xml')
+            cat.create_style(styleName, style.read(),workspace=workspace,overwrite=True)
+            styles.append(workspace+':'+styleName)
     break
 
 #assign styles to created layers and enable timeDimension
@@ -117,6 +120,7 @@ for layer in layers:
             layerName=layer.resource.name
             # Set Default Style (timeIndependend)
             layer.default_style=workspace+":"+layerName
+            layer.styles=[s for s in styles if s.startswith(workspace+":"+layerName)]
             cat.save(layer)
             #get coverage to activate time Dimension
             from geoserver.support import DimensionInfo
