@@ -1,1 +1,1 @@
-__all__ = ['makeMap', 'styles','utils']
+__all__ = ['makeMap', 'styles', 'utils']
