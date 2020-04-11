@@ -24,7 +24,7 @@ styles=[]
 
 def _generateValues(styles,minValue,maxValue,nClasses):
     values=[]
-    nDigits=2 # Number of digits uses for rounding
+    nDigits=cfg['styles']['nDigits'] # Number of digits used for rounding
     values.append(round(minValue,nDigits))
     classStep=((maxValue-minValue)/(nClasses-1))
     for i in range(nClasses-2):

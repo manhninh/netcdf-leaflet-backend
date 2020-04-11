@@ -19,6 +19,7 @@ frontend:
     path: ../frontend/app #[optional]
     cleanup: False #[optional] #If active Removal of not found workspaces at Geoserver
 styles: #To be defined in Hex Color Code
+    nDigits: 2 #[optional] Specify Number of Digits used by rounding in Styles
     DefaultColors: ["#0571b0","#92c5de","#f7f7f7","#f4a582","#ca0020"]
     customStyles:
         Albedo: #[optional]
