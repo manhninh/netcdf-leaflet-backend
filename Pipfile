@@ -8,6 +8,8 @@ autopep8 = "*"
 pylint = "*"
 rope = "*"
 cfchecker="*"
+pydocstyle="*"
+pycodestyle="*"
 
 [packages]
 netCDF4 ="*"
