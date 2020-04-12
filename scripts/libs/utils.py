@@ -9,6 +9,11 @@
 # author: Elias Borngässer
 # =======================================================================
 
+"""General methods used in main scripts.
+
+name:   utils.py
+author: Elias Borngässer
+"""
 
 import math
 import yaml
@@ -21,7 +26,13 @@ from urllib.request import urlopen
 from geoserver.catalog import Catalog
 
 
+
 def _readConf():
+    """Reads Config File specified in main.sh, if no configFile specified using ./config.yml.
+
+    Returns:
+        [dict] -- [Dictionary, containing global vars]
+    """
     if 'CONFIGFILE' in os.environ:
         _cfgFile = os.environ['CONFIGFILE']
     elif os.path.exists("./config.yml"):
@@ -66,6 +77,11 @@ cfg = _readConf()
 
 
 def checkConnection(geoserver_url: str, user: str, password: str):
+    """Trys to connect to a secure Url.
+
+    Returns:
+        [bool] -- [Determines if connection could be established]
+    """
     session = requests.Session()
     session.auth = (cfg['geoserver']['user'], cfg['geoserver']['password'])
     try:
@@ -91,11 +107,21 @@ def checkConnection(geoserver_url: str, user: str, password: str):
 
 
 def getFrontendDirs():
+    """[Retrieving list of Frontend Directories]
+
+    Returns:
+        [array] -- [List of Frontend Directories]
+    """
     for _r, dirs, _f in os.walk(cfg['frontend']['path'] + '/projects/'):
         return dirs
 
 
 def cleanupProjects(ignore):
+    """[Deleting workspaces at geoserver, which haven't a frontend Directory with the same name]
+
+    Returns:
+        [array] -- [List of projects that do exist]
+    """
     error, geoserver_url = checkConnection(cfg['geoserver']['url'] + "/rest/", cfg['geoserver']['user'], cfg['geoserver']['password'])
     projects = []
     if error:
@@ -113,7 +139,12 @@ def cleanupProjects(ignore):
     return projects
 
 
-def addGridMappingVars(var, locationLat, locationLon, rotation):
+def addGridMappingVars(var, locationLat:float, locationLon:float, rotation:float):
+    """[adds grid Mapping Vars to a given Variable, that can be handled by Geoserver]
+
+    Returns:
+        [NetCDF-Variable] -- [returns variable with added grid#_mapping_information]
+    """
     var.grid_mapping_name = "mercator"
     var.standard_parallel = 0.0
     var._CoordinateTransformType = "Projection"

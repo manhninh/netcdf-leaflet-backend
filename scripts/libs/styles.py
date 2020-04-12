@@ -8,6 +8,7 @@
 #
 # author: Elias Borngässer
 # =======================================================================
+"""Handles style and legend creation"""
 from jinja2 import Environment, PackageLoader, select_autoescape
 import sys
 import logging
@@ -44,6 +45,15 @@ def _createColorMapping(colors, values):
 
 
 def createStyle(styleName, minValue, maxValue, layerMappingName, unit):
+    """[summary]
+    
+    Arguments:
+        styleName {[string]} -- Style Name
+        minValue {float} -- Minimum Value that Style is using
+        maxValue {float} -- Maximum Value that Style is using
+        layerMappingName {float} -- MappingName for Layer
+        unit {string} -- String to display
+    """    
     varName = styleName.rstrip(digits)
     # Check if Style has own description in Config
     if varName in cfg['styles']['customStyles']:
@@ -74,6 +84,7 @@ def createStyle(styleName, minValue, maxValue, layerMappingName, unit):
 
 
 def createLegend():
+    """Creating legend.js using styles"""    
     template = env.get_template('legend.j2')
     parsed_template = template.render(styles=styles)
     path = cfg['frontend']['path'] + "/projects/" + projectName + "/legend.js"

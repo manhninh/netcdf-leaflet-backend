@@ -8,7 +8,7 @@
 #
 # author: Elias Borngässer
 # =======================================================================
-
+"""Delete Project Folder and Workspace in Geoserver"""
 from libs import utils, makeMap
 import shutil
 import sys

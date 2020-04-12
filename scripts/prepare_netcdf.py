@@ -8,7 +8,7 @@
 #
 # author: Elias Borngässer
 # =======================================================================
-
+"""Reads EnviMet NetCDF and write a geoserver compatible netCDF file"""
 from netCDF4 import Dataset, Variable
 import numpy as np
 import sys
@@ -26,12 +26,13 @@ dimZName = 'GridsK'
 dimTName = 'Time'
 
 
-def createDimensions():
+def _createDimensions():
+    """Creating Dimensions from input NetCDF File, checking TimeUnits"""    
     for d in ncin.dimensions:
         dimVar = ncin[d]
         ncout.createDimension(d, dimVar.size)
         data = ncout.createVariable(d, np.dtype('double').char, (d))
-        add_attributes(dimVar, data)
+        _add_attributes(dimVar, data)
         if d == dimTName:
             data.units = "Hours since {}-{}-{} {}".format(year, month, day, timeString)
         if d == dimYName:
@@ -42,14 +43,21 @@ def createDimensions():
 # creating vars specified in Config
 
 
-def add_attributes(vin: Variable, data: Variable):
+def _add_attributes(vin: Variable, data: Variable):
+    """Adding Attributes from Input Variable to Output Variable
+    
+    Arguments:
+        vin {NetCDF-Variable} -- [description]
+        data {NetCDF-Variable} -- [description]
+    """        
     for ncattr in vin.ncattrs():
         if ncattr != '_FillValue':
             data.setncattr(ncattr, vin.getncattr(ncattr))
     return data
 
 
-def createVars():
+def _createVars():
+    """Creating Variables, styles and overlays defined by config(attributes_to_read) config(height_levels)"""    
     isDEM = False
     varDEMOFFSet = None
     maxDEMOffset = 0
@@ -70,7 +78,7 @@ def createVars():
                 makeMap.addOverlay(vin.name, vin.long_name, False)
                 fill_val = vin._FillValue if hasattr(vin, '_FillValue') else 999
                 data[var_name] = ncout.createVariable(var_name, np.dtype('double').char, (dimTName, dimYName, dimXName,), fill_value=fill_val)
-                data[var_name] = add_attributes(vin, data[var_name])
+                data[var_name] = _add_attributes(vin, data[var_name])
                 data[var_name][:] = vin[:, ::-1]  # flipping vertical axis for correct visualization
                 data[var_name].setncattr('grid_mapping', 'crs')
                 # Create Layer
@@ -83,7 +91,7 @@ def createVars():
                 for i in range(ntime):
                     vin_min = float(data[var_name][i][:].min())
                     vin_max = float(data[var_name][i][:].max())
-                    makeMap.createStyle(s_name=vin.name + str(i), longName=vin.long_name, minValue=vin_min, maxValue=vin_max, unit=vin.units, index=i)
+                    makeMap.createStyle(s_name=vin.name + str(i), longName=vin.long_name, minValue=vin_min, maxValue=vin_max, unit=vin.units, tIndex=i)
 
             # Variables with Height Dimension
             elif len(vin.dimensions) == 4 and vin.dimensions[1] == dimZName:
@@ -93,10 +101,10 @@ def createVars():
                     if isDEM and maxDEMOffset + heightIndex > nheight:
                         logging.warning("Will skip heightLevel " + h + " cause of max DEMOffset Value " + maxDEMOffset)
                         continue
-                    var_height_name = var_name + str(h).replace('.', '')  # adding height value to var name
+                    var_height_name = var_name + str(h).replace('.', '_')  # adding height value to var name
                     fill_val = vin._FillValue if hasattr(vin, '_FillValue') else 999
                     data[var_height_name] = ncout.createVariable(var_height_name, np.dtype('double').char, (dimTName, dimYName, dimXName,), fill_value=fill_val)
-                    data[var_height_name] = add_attributes(vin, data[var_height_name])
+                    data[var_height_name] = _add_attributes(vin, data[var_height_name])
                     data[var_height_name].setncattr('height', h)
 
                     if isDEM:
@@ -115,7 +123,7 @@ def createVars():
                     for i in range(ntime):
                         vin_min = float(data[var_height_name][i][:].min())
                         vin_max = float(data[var_height_name][i][:].max())
-                        makeMap.createStyle(s_name=var_height_name + str(i), longName=vin.long_name, minValue=vin_min, maxValue=vin_max, unit=vin.units, h=h, index=i)
+                        makeMap.createStyle(s_name=var_height_name + str(i), longName=vin.long_name, minValue=vin_min, maxValue=vin_max, unit=vin.units, h=h, tIndex=i)
 
             else:
                 logging.warning('Variable ' + var_name + ' has no valid dimensions')
@@ -123,7 +131,8 @@ def createVars():
             logging.warning('Variable ' + var_name + ' not found in ' + inputFile)
 
 
-def add_manual_grid_mapping():
+def _add_manual_grid_mapping():
+    """Creating grid_mapping Variable using utils.addGridMappingVars()"""    
     data = {}
     data['crs'] = ncout.createVariable('crs', np.dtype('c').char)
     utils.addGridMappingVars(data['crs'], locationLat, locationLong, rotation)
@@ -190,10 +199,10 @@ if not os.path.isdir(cfg['general']['workdir'] + '/outputFiles/' + projectName +
 ncout = Dataset(cfg['general']['workdir'] + '/outputFiles/' + projectName + '/' + projectName + '.nc', 'w', format='NETCDF4')
 
 
-add_manual_grid_mapping()
+_add_manual_grid_mapping()
 
-createDimensions()
-createVars()
+_createDimensions()
+_createVars()
 # ncout = utils.add_proj(ncout,epsg)
 ncout.Conventions = 'CF-1.7'
 

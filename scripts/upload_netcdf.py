@@ -9,7 +9,7 @@
 #
 # author: Elias Borngässer
 # =======================================================================
-
+"""Delete Old Workspace, Upload prepared NetCDF File and Styles"""
 
 import zipfile
 import requests
@@ -48,7 +48,8 @@ headers_xml = {'content-type': 'text/xml'}
 netcdfFile = cfg['general']['workdir'] + '/outputFiles/' + projectName + '/' + projectName + '.nc'
 
 
-def checkUpload():
+def _checkUpload():
+    """Wait until config(timeout) is elapsed or upload has been completed"""    
     passedTime = 0
     while True:
         if cat.get_store(projectName, workspace=workspace):
@@ -73,6 +74,7 @@ r_set_wms_options = session.put(geoserver_url + '/services/wms/settings',
 # Delete old workspace and create new one
 if cat.get_workspace(workspace):
     if cat.get_store(projectName, workspace):
+        test=cat.get_store(projectName, workspace)
         cat.delete(cat.get_store(projectName, workspace=workspace), purge="all", recurse=True)
     cat.delete(cat.get_workspace(workspace), purge="all", recurse=True)
     for layer in cat.get_layers():
@@ -95,7 +97,7 @@ with open(output.filename, 'rb') as zip_file:
                                  headers=headers_zip)
 
 # Wait until CoverageStore has been created
-if r_create_layer.status_code == 201 and checkUpload():
+if r_create_layer.status_code == 201 and _checkUpload():
     logging.info('Succecssfully uploaded Zipfile')
 else:
     logging.error('Failed to upload NetCDF File')
@@ -130,6 +132,7 @@ for layer in layers:
         coverage = cat.get_resource(layerName, projectName, workspace=workspace)
         timeInfo = DimensionInfo("time", "true", "LIST", None, "ISO8601", None)
         coverage.metadata = ({'time': timeInfo})
+        coverage.CheckAuxiliaryMetadata=True
         cat.save(coverage)
 if 'removeOutputFiles' in cfg['general'] and cfg['general']['removeOutputFiles'] is not False:
     shutil.rmtree(cfg['general']['workdir'] + '/outputFiles/' + projectName + '/')

@@ -8,7 +8,7 @@
 #
 # author: Elias Borngässer
 # =======================================================================
-
+"""List Project Folder and Workspaces in Geoserver"""
 from libs import utils
 import shutil
 import sys
