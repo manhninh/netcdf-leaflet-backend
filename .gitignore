@@ -5,3 +5,4 @@ POC/**
 .DS_Store
 inputFiles
 outputFiles
+config.yml
