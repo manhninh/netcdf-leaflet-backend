@@ -83,7 +83,7 @@ def createStyle(s_name, minValue, maxValue, longName, unit, h=None, tIndex=""):
         layerMappingName = longName + '-' + str(h) + ' Meter' + str(tIndex)
     else:
         layerMappingName = longName + str(tIndex)
-    styles.createStyle(s_name, minValue, maxValue, layerMappingName, unit)
+    styles.createStyle(s_name, minValue, maxValue, layerMappingName, unit, tIndex)
 
 
 def addLayer(l_name, l_mappingName):
