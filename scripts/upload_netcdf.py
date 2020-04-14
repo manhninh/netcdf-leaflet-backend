@@ -80,6 +80,8 @@ if cat.get_workspace(workspace):
     for layer in cat.get_layers():
         if layer.name.startswith(workspace):
             cat.delete(layer, recurse=True)
+    for style in cat.get_styles(workspaces=[workspace]):
+        cat.delete(style, recurse=True)
 cat.create_workspace(workspace, geoserver_url + '/' + workspace)
 
 # zip the ncFile
