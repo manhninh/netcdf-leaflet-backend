@@ -40,11 +40,11 @@ def _generateValues(styles, minValue, maxValue, nClasses):
 def _createColorMapping(colors, values):
     colorMapping = []
     for i in range(len(colors)):
-        colorMapping.append({"color": colors[i], "value": values[i]})
+        colorMapping.append({"color": colors[i], "value": values[i], "name": "value_"+str(i)})
     return colorMapping
 
 
-def createStyle(styleName, minValue, maxValue, layerMappingName, unit):
+def createStyle(styleName, minValue, maxValue, layerMappingName, unit, tIndex):
     """[summary]
     
     Arguments:
@@ -68,19 +68,19 @@ def createStyle(styleName, minValue, maxValue, layerMappingName, unit):
         colors = cfg['styles']['DefaultColors']
         values = _generateValues(styles, minValue, maxValue, len(colors))
 
-    template = env.get_template('style.j2')
-
     # create StyleObject (used by Legend)
     style = {"name": styleName, "colors": colors, "values": values, "layerMappingName": layerMappingName, "unit": unit}
     styles.append(style)
 
-    colorMapping = _createColorMapping(colors, values)
-    # create SLD Style which is used by Geoserver
-    parsed_template = template.render(styleName=styleName, colorMapping=colorMapping)
-    if not os.path.isdir(cfg['general']['workdir'] + '/outputFiles/' + projectName + '/styles/'):
-        os.mkdir(cfg['general']['workdir'] + '/outputFiles/' + projectName + '/styles/')
-    with open(cfg['general']['workdir'] + '/outputFiles/' + projectName + '/styles/' + styleName + '.xml', "w") as fh:
-        fh.write(parsed_template)
+    if tIndex=='':
+        # create SLD Style which is used by Geoserver
+        template = env.get_template('style.j2')
+        colorMapping = _createColorMapping(colors, values)
+        parsed_template = template.render(styleName=styleName, colorMapping=colorMapping)
+        if not os.path.isdir(cfg['general']['workdir'] + '/outputFiles/' + projectName + '/styles/'):
+            os.mkdir(cfg['general']['workdir'] + '/outputFiles/' + projectName + '/styles/')
+        with open(cfg['general']['workdir'] + '/outputFiles/' + projectName + '/styles/' + styleName + '.xml', "w") as fh:
+            fh.write(parsed_template)
 
 
 def createLegend():

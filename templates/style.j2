@@ -13,7 +13,7 @@
         <Rule>
           <RasterSymbolizer>
             <ColorMap>
-                {% for colorMapEntry in colorMapping %} <ColorMapEntry color="{{colorMapEntry.color}}" quantity="{{colorMapEntry.value}}" />
+                {% for colorMapEntry in colorMapping %} <ColorMapEntry color="{{colorMapEntry.color}}" quantity="${env('{{colorMapEntry.name}}',{{colorMapEntry.value}})}" />
                 {% endfor %}
             </ColorMap>
           </RasterSymbolizer>
