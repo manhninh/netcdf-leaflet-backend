@@ -158,8 +158,8 @@ except BaseException:
 logging.info("Creating project " + projectName + " from " + inputFile)
 
 # global attributes
-locationLat = ncin.getncattr('LocationLatitude')
-locationLong = ncin.getncattr('LocationLongitude')
+locationLat = ncin.getncattr('lat')
+locationLong = ncin.getncattr('lon')
 
 rotation = ncin.getncattr('ModelRotation')
 pixelWidth = int(ncin.getncattr('SizeDX')[0])
